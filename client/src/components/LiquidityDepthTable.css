@@ -143,7 +143,7 @@
 }
 
 .liquidity-table th {
-  padding: 0.6rem 0.75rem;
+  padding: 0.6rem 0;
   text-align: left;
   font-weight: 600;
   color: #9AA4B2;
@@ -151,14 +151,20 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .liquidity-table td {
-  padding: 0.7rem 0.75rem;
+  padding: 0.7rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   color: #E6EAF0;
   font-size: 0.85rem;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .liquidity-table tbody tr {
