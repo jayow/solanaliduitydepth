@@ -14,17 +14,17 @@
 
 .chart-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
 }
 
-.chart-header h2 {
-  color: #E6EAF0;
-  font-size: 1.25rem;
-  font-weight: 600;
+.chart-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #9AA4B2;
+  flex-wrap: wrap;
 }
 
 .price-info {
@@ -35,13 +35,6 @@
   font-weight: 600;
   color: #E6EAF0;
   font-size: 0.9rem;
-}
-
-.slippage-range {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #9AA4B2;
 }
 
 .slippage-range strong {

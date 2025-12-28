@@ -250,8 +250,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
   return (
     <div className="liquidity-chart-container">
       <div className="chart-header">
-        <h2>Price Impact</h2>
-        <div className="slippage-range">
+        <div className="chart-header-content">
           <span>Y-axis: <strong>0% - {maxDisplayCap}%</strong></span>
           {maxTradeValueWithinCap > 0 ? (
             <span>
@@ -263,20 +262,19 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             </span>
           )}
           {hasDataAboveCap && (
-            <span style={{ color: '#ef4444', fontSize: '0.85rem', marginLeft: '0.5rem' }}>
+            <span style={{ color: '#ef4444' }}>
               ⚠️ Some data exceeds cap (max: {maxPriceImpact.toFixed(1)}%)
             </span>
           )}
-        </div>
-        <div className="cap-control">
-          <label htmlFor="impact-cap" style={{ fontSize: '0.85rem', marginRight: '0.5rem' }}>
-            Display Cap:
-          </label>
-          <input
-            id="impact-cap"
-            type="number"
-            min="1"
-            max="1000"
+          <div className="cap-control">
+            <label htmlFor="impact-cap">
+              Display Cap:
+            </label>
+            <input
+              id="impact-cap"
+              type="number"
+              min="1"
+              max="1000"
             step="1"
             value={capInputValue}
             onChange={(e) => {
