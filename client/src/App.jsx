@@ -16,7 +16,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'chart'
+  const [viewMode, setViewMode] = useState('chart'); // 'table' or 'chart'
   const [jupiterStatus, setJupiterStatus] = useState(null); // 'checking', 'connected', 'error'
   const [statusMessage, setStatusMessage] = useState('');
   const [elapsedTime, setElapsedTime] = useState(0); // Time elapsed in seconds
