@@ -618,10 +618,20 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   // Now test each USD trade size
   // Convert each fixed USD amount to the exact token amount needed
   for (const usdAmount of usdTradeSizes) {
+    // Log every iteration to track progress
+    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`📊 Processing ${formatUSD(usdAmount)} (${usdAmount.toLocaleString()} USD)`);
+    console.log(`   Progress: ${depthPoints.length}/${usdTradeSizes.length} trade sizes completed`);
+    
     // Check if we're running out of time
     const elapsed = Date.now() - calculationStartTime;
+    const elapsedSeconds = (elapsed / 1000).toFixed(1);
+    const remainingSeconds = ((MAX_CALCULATION_TIME - elapsed) / 1000).toFixed(1);
+    console.log(`   ⏱️ Time elapsed: ${elapsedSeconds}s, Remaining: ${remainingSeconds}s`);
+    
     if (elapsed > MAX_CALCULATION_TIME) {
-      console.warn(`⏱️ Calculation timeout (${(elapsed / 1000).toFixed(1)}s). Returning ${depthPoints.length} points collected so far.`);
+      console.warn(`⏱️ Calculation timeout (${elapsedSeconds}s). Returning ${depthPoints.length} points collected so far.`);
+      console.warn(`⚠️ MISSING TRADE SIZES: ${usdTradeSizes.slice(usdTradeSizes.indexOf(usdAmount)).map(s => formatUSD(s)).join(', ')}`);
       break; // Stop and return what we have
     }
     
@@ -662,18 +672,20 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         continue;
       }
       
-      console.log(`Testing ${formatUSD(usdAmount)} = ${formatAmount(tokenAmount)} tokens (raw: ${rawAmount.toLocaleString()})`);
+      console.log(`   💰 Converting: ${formatUSD(usdAmount)} = ${formatAmount(tokenAmount)} tokens (raw: ${rawAmount.toLocaleString()})`);
       
       // Check timeout before proceeding (but allow a bit of buffer for the actual request)
       const elapsed = Date.now() - calculationStartTime;
+      const elapsedSeconds = (elapsed / 1000).toFixed(1);
       // Only stop if we're way over timeout (give 5 seconds buffer for the request itself)
       if (elapsed > MAX_CALCULATION_TIME + 5000) {
-        console.warn(`⏱️ Timeout exceeded, stopping at ${formatUSD(usdAmount)}`);
+        console.warn(`⏱️ Timeout exceeded (${elapsedSeconds}s), stopping at ${formatUSD(usdAmount)}`);
+        console.warn(`⚠️ MISSING TRADE SIZES: ${usdTradeSizes.slice(usdTradeSizes.indexOf(usdAmount)).map(s => formatUSD(s)).join(', ')}`);
         break;
       }
       // If we're close to timeout but not over, still try (request might be fast)
       if (elapsed > MAX_CALCULATION_TIME) {
-        console.warn(`⏱️ Approaching timeout (${(elapsed / 1000).toFixed(1)}s), but attempting ${formatUSD(usdAmount)} anyway...`);
+        console.warn(`⏱️ Approaching timeout (${elapsedSeconds}s), but attempting ${formatUSD(usdAmount)} anyway...`);
       }
       
       // Extra delay for large amounts to avoid rate limits (only if we have time)
@@ -684,8 +696,12 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       // Use more retries for large amounts to handle transient errors
       // Increase retries significantly for $50M+ to ensure we get these critical data points
       const retryCount = usdAmount >= 50000000 ? 5 : (usdAmount >= 10000000 ? 4 : 2);
-      console.log(`🔄 Attempting ${formatUSD(usdAmount)} with ${retryCount} retries...`);
+      console.log(`   🔄 Requesting quote for ${formatUSD(usdAmount)} with ${retryCount} retries...`);
+      console.log(`   📡 Input: ${quoteInputMint?.slice(0, 8)}..., Output: ${quoteOutputMint?.slice(0, 8)}..., Amount: ${rawAmount.toLocaleString()}`);
+      const quoteStartTime = Date.now();
       const quote = await getQuote(quoteInputMint, quoteOutputMint, rawAmount, 50, retryCount);
+      const quoteDuration = ((Date.now() - quoteStartTime) / 1000).toFixed(2);
+      console.log(`   ⏱️ Quote request completed in ${quoteDuration}s`);
 
       if (quote?.outAmount && quote?.inAmount) {
         // Calculate readable amounts
