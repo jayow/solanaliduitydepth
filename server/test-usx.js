@@ -198,13 +198,19 @@ function formatUSD(amount) {
 async function runTests() {
   try {
     console.log('='.repeat(70));
-    console.log('TEST 1: USX (known to stop at $10M)');
+    console.log('TEST 1: USX');
     console.log('='.repeat(70));
     const usxResult = await testToken(USX_MINT, 'USX', 'sell');
     
     console.log('\n\n');
     console.log('='.repeat(70));
-    console.log('TEST 2: USDT (should work up to $100M)');
+    console.log('TEST 2: eUSX');
+    console.log('='.repeat(70));
+    const eusxResult = await testToken(EUSX_MINT, 'eUSX', 'sell');
+    
+    console.log('\n\n');
+    console.log('='.repeat(70));
+    console.log('TEST 3: USDT (reference - should work up to $100M)');
     console.log('='.repeat(70));
     const usdtResult = await testToken(USDT_MINT, 'USDT', 'sell');
     
@@ -216,21 +222,29 @@ async function runTests() {
     const usxSellMax = usxResult.sellDepth.length > 0 
       ? Math.max(...usxResult.sellDepth.map(p => p.tradeUsdValue))
       : 0;
+    const eusxSellMax = eusxResult.sellDepth.length > 0
+      ? Math.max(...eusxResult.sellDepth.map(p => p.tradeUsdValue))
+      : 0;
     const usdtSellMax = usdtResult.sellDepth.length > 0
       ? Math.max(...usdtResult.sellDepth.map(p => p.tradeUsdValue))
       : 0;
     
     console.log(`USX SELL:  ${formatUSD(usxSellMax)} (${usxResult.sellDepth.length} points)`);
+    console.log(`eUSX SELL: ${formatUSD(eusxSellMax)} (${eusxResult.sellDepth.length} points)`);
     console.log(`USDT SELL: ${formatUSD(usdtSellMax)} (${usdtResult.sellDepth.length} points)`);
     
-    if (usxSellMax < 100000000 && usdtSellMax >= 100000000) {
-      console.log('\n✅ CONFIRMED: Issue is specific to USX liquidity, not the code.');
-      console.log('   USDT works up to $100M, but USX stops earlier.');
-      console.log('   This suggests Jupiter API cannot find enough liquidity for USX at large sizes.');
-    } else if (usxSellMax < 100000000 && usdtSellMax < 100000000) {
-      console.log('\n⚠️ Both tokens stop before $100M - this suggests a code issue.');
+    console.log('\n📊 Analysis:');
+    if (usxSellMax < 100000000 && eusxSellMax < 100000000 && usdtSellMax >= 100000000) {
+      console.log('✅ USDT works up to $100M, but both USX and eUSX have liquidity limitations.');
+      console.log('   This suggests Jupiter API cannot find enough liquidity for USX/eUSX at large sizes.');
+    } else if (usxSellMax >= 100000000 && eusxSellMax >= 100000000) {
+      console.log('✅ Both USX and eUSX work up to $100M - excellent liquidity!');
+    } else if (eusxSellMax > usxSellMax) {
+      console.log(`✅ eUSX has better liquidity than USX (${formatUSD(eusxSellMax)} vs ${formatUSD(usxSellMax)})`);
+    } else if (usxSellMax > eusxSellMax) {
+      console.log(`✅ USX has better liquidity than eUSX (${formatUSD(usxSellMax)} vs ${formatUSD(eusxSellMax)})`);
     } else {
-      console.log('\n✅ Both tokens work up to $100M - code is working correctly.');
+      console.log(`⚠️ Both USX and eUSX have similar liquidity limitations (max: ${formatUSD(Math.max(usxSellMax, eusxSellMax))})`);
     }
     
   } catch (error) {

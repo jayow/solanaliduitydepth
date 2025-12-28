@@ -876,15 +876,23 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         console.warn(partialFillMsg);
         logs.push(partialFillMsg);
         
-        // For very large amounts ($50M+), try progressively smaller amounts
-        if (usdAmount >= 50000000) {
+        // For large amounts ($10M+), try progressively smaller amounts to find maximum
+        if (usdAmount >= 10000000) {
           const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
           console.log(trySmallerMsg);
           logs.push(trySmallerMsg);
           
-          // Try progressively smaller amounts: 40M, 30M, 20M, 15M, 12M, 11M, 10.5M, 10M
-          // Jupiter frontend shows ~$11.5M output for $50M input, so try around that range
-          const smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
+          // Determine which amounts to try based on the failed amount
+          let smallerAmounts;
+          if (usdAmount >= 50000000) {
+            // For $50M+, try: 40M, 30M, 20M, 15M, 12M, 11M, 10.5M, 10M
+            smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
+          } else if (usdAmount >= 10000000) {
+            // For $10M+, try: 9M, 8M, 7M, 6M, 5M, 4M, 3M, 2M
+            smallerAmounts = [9000000, 8000000, 7000000, 6000000, 5000000, 4000000, 3000000, 2000000];
+          } else {
+            smallerAmounts = [];
+          }
           let foundWorkingAmount = false;
           
           for (const smallerAmount of smallerAmounts) {
