@@ -8,6 +8,8 @@
   color: #E6EAF0;
   margin-bottom: 1.5rem;
   padding: 1rem 0 0.5rem 0;
+  padding-left: 0;
+  margin-left: 0;
 }
 
 .app-header h1 {
