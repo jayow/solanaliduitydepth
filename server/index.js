@@ -455,6 +455,7 @@ async function getTokenDecimals(mintAddress) {
 async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   const depthPoints = [];
   const errors = []; // Track errors for debugging
+  const logs = []; // Track all logs for debugging
   
   // Get token decimals
   const inputDecimals = await getTokenDecimals(inputMint);
@@ -620,19 +621,26 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   // Convert each fixed USD amount to the exact token amount needed
   for (const usdAmount of usdTradeSizes) {
     // Log every iteration to track progress
-    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`📊 Processing ${formatUSD(usdAmount)} (${usdAmount.toLocaleString()} USD)`);
-    console.log(`   Progress: ${depthPoints.length}/${usdTradeSizes.length} trade sizes completed`);
+    const logMsg1 = `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+    const logMsg2 = `📊 Processing ${formatUSD(usdAmount)} (${usdAmount.toLocaleString()} USD)`;
+    const logMsg3 = `   Progress: ${depthPoints.length}/${usdTradeSizes.length} trade sizes completed`;
+    console.log(logMsg1);
+    console.log(logMsg2);
+    console.log(logMsg3);
+    logs.push(logMsg1, logMsg2, logMsg3);
     
     // Check if we're running out of time
     const elapsed = Date.now() - calculationStartTime;
     const elapsedSeconds = (elapsed / 1000).toFixed(1);
     const remainingSeconds = ((MAX_CALCULATION_TIME - elapsed) / 1000).toFixed(1);
-    console.log(`   ⏱️ Time elapsed: ${elapsedSeconds}s, Remaining: ${remainingSeconds}s`);
+    const timeLog = `   ⏱️ Time elapsed: ${elapsedSeconds}s, Remaining: ${remainingSeconds}s`;
+    console.log(timeLog);
+    logs.push(timeLog);
     
     if (elapsed > MAX_CALCULATION_TIME) {
-      console.warn(`⏱️ Calculation timeout (${elapsedSeconds}s). Returning ${depthPoints.length} points collected so far.`);
-      console.warn(`⚠️ MISSING TRADE SIZES: ${usdTradeSizes.slice(usdTradeSizes.indexOf(usdAmount)).map(s => formatUSD(s)).join(', ')}`);
+      const timeoutMsg = `⏱️ Calculation timeout (${elapsedSeconds}s). Returning ${depthPoints.length} points collected so far.\n⚠️ MISSING TRADE SIZES: ${usdTradeSizes.slice(usdTradeSizes.indexOf(usdAmount)).map(s => formatUSD(s)).join(', ')}`;
+      console.warn(timeoutMsg);
+      logs.push(timeoutMsg);
       break; // Stop and return what we have
     }
     
@@ -697,12 +705,17 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       // Use more retries for large amounts to handle transient errors
       // Increase retries significantly for $50M+ to ensure we get these critical data points
       const retryCount = usdAmount >= 50000000 ? 5 : (usdAmount >= 10000000 ? 4 : 2);
-      console.log(`   🔄 Requesting quote for ${formatUSD(usdAmount)} with ${retryCount} retries...`);
-      console.log(`   📡 Input: ${quoteInputMint?.slice(0, 8)}..., Output: ${quoteOutputMint?.slice(0, 8)}..., Amount: ${rawAmount.toLocaleString()}`);
+      const quoteLog1 = `   🔄 Requesting quote for ${formatUSD(usdAmount)} with ${retryCount} retries...`;
+      const quoteLog2 = `   📡 Input: ${quoteInputMint?.slice(0, 8)}..., Output: ${quoteOutputMint?.slice(0, 8)}..., Amount: ${rawAmount.toLocaleString()}`;
+      console.log(quoteLog1);
+      console.log(quoteLog2);
+      logs.push(quoteLog1, quoteLog2);
       const quoteStartTime = Date.now();
       const quote = await getQuote(quoteInputMint, quoteOutputMint, rawAmount, 50, retryCount);
       const quoteDuration = ((Date.now() - quoteStartTime) / 1000).toFixed(2);
-      console.log(`   ⏱️ Quote request completed in ${quoteDuration}s`);
+      const quoteLog3 = `   ⏱️ Quote request completed in ${quoteDuration}s`;
+      console.log(quoteLog3);
+      logs.push(quoteLog3);
 
       if (quote?.outAmount && quote?.inAmount) {
         // Calculate readable amounts
@@ -825,11 +838,15 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       // Continue to next amount - don't fail the entire request
       // Note: We skip this amount but will try the next one
       // Log which amount we're skipping for debugging
-      console.log(`⏭️ Skipping ${formatUSD(usdAmount)} due to error, continuing to next trade size...`);
+      const skipMsg = `⏭️ Skipping ${formatUSD(usdAmount)} due to error, continuing to next trade size...`;
+      console.log(skipMsg);
+      logs.push(skipMsg);
       
       // For very large amounts ($50M+), this is concerning - log prominently
       if (usdAmount >= 50000000) {
-        console.error(`🚨 WARNING: Failed to get quote for ${formatUSD(usdAmount)} - this is a critical data point!`);
+        const criticalMsg = `🚨 WARNING: Failed to get quote for ${formatUSD(usdAmount)} - this is a critical data point!`;
+        console.error(criticalMsg);
+        logs.push(criticalMsg);
       }
       
       // Store error for debugging
@@ -998,12 +1015,18 @@ app.get('/api/liquidity-depth', async (req, res) => {
     console.log(`Connecting to Jupiter API...`);
     
     const startTime = Date.now();
-    const depth = await calculateLiquidityDepth(inputMint, outputMint, isBuyOrder);
+    const result = await calculateLiquidityDepth(inputMint, outputMint, isBuyOrder);
+    // Handle both old format (array) and new format (object with depthPoints, logs, errors)
+    const depth = Array.isArray(result) ? result : (result.depthPoints || []);
+    const debugLogs = result.logs || [];
+    const debugErrors = result.errors || [];
     const duration = Date.now() - startTime;
     
     console.log(`=== Calculation complete ===`);
     console.log(`Duration: ${duration}ms`);
     console.log(`Points collected: ${depth.length}`);
+    console.log(`Logs captured: ${debugLogs.length}`);
+    console.log(`Errors captured: ${debugErrors.length}`);
     console.log(`===========================\n`);
     
     if (depth.length === 0) {
@@ -1024,6 +1047,10 @@ app.get('/api/liquidity-depth', async (req, res) => {
         calculationTime: `${duration}ms`,
         timestamp: new Date().toISOString(),
         warning: depth.length === 0 ? 'No liquidity data collected. Check server logs for details.' : null
+      },
+      debug: {
+        logs: debugLogs,
+        errors: debugErrors
       }
     });
   } catch (error) {

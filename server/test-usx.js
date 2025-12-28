@@ -35,8 +35,33 @@ async function testUSX() {
     const buyDuration = ((Date.now() - buyStartTime) / 1000).toFixed(2);
     
     const buyDepth = buyResponse.data.depth || [];
+    const buyDebug = buyResponse.data.debug || {};
     console.log(`✅ BUY completed in ${buyDuration}s`);
     console.log(`   Collected ${buyDepth.length} data points\n`);
+    
+    // Show server logs if available
+    if (buyDebug.logs && buyDebug.logs.length > 0) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📋 SERVER LOGS FOR BUY:');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      buyDebug.logs.forEach(log => console.log(log));
+      console.log('');
+    } else {
+      console.log('⚠️ No server logs available in response');
+      console.log('   Debug object:', JSON.stringify(buyDebug, null, 2));
+      console.log('');
+    }
+    
+    // Show errors if available
+    if (buyDebug.errors && buyDebug.errors.length > 0) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('❌ ERRORS FOR BUY:');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      buyDebug.errors.forEach(err => {
+        console.log(`   ${err.tradeSizeFormatted}: ${err.error} (Status: ${err.statusCode || 'N/A'})`);
+      });
+      console.log('');
+    }
     
     if (buyDepth.length > 0) {
       const tradeSizes = buyDepth.map(p => p.tradeUsdValue).sort((a, b) => a - b);
@@ -74,8 +99,33 @@ async function testUSX() {
     const sellDuration = ((Date.now() - sellStartTime) / 1000).toFixed(2);
     
     const sellDepth = sellResponse.data.depth || [];
+    const sellDebug = sellResponse.data.debug || {};
     console.log(`✅ SELL completed in ${sellDuration}s`);
     console.log(`   Collected ${sellDepth.length} data points\n`);
+    
+    // Show server logs if available
+    if (sellDebug.logs && sellDebug.logs.length > 0) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📋 SERVER LOGS FOR SELL:');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      sellDebug.logs.forEach(log => console.log(log));
+      console.log('');
+    } else {
+      console.log('⚠️ No server logs available in response');
+      console.log('   Debug object:', JSON.stringify(sellDebug, null, 2));
+      console.log('');
+    }
+    
+    // Show errors if available
+    if (sellDebug.errors && sellDebug.errors.length > 0) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('❌ ERRORS FOR SELL:');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      sellDebug.errors.forEach(err => {
+        console.log(`   ${err.tradeSizeFormatted}: ${err.error} (Status: ${err.statusCode || 'N/A'})`);
+      });
+      console.log('');
+    }
     
     if (sellDepth.length > 0) {
       const tradeSizes = sellDepth.map(p => p.tradeUsdValue).sort((a, b) => a - b);
