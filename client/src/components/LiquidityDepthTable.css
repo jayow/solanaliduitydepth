@@ -56,57 +56,57 @@
 
 .liquidity-table th:first-child,
 .liquidity-table td:first-child {
-  width: 11%;
+  width: 12%;
   padding-left: 0.75rem;
-  padding-right: 0.5rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(2),
 .liquidity-table td:nth-child(2) {
-  width: 13%;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  width: 14%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(3),
 .liquidity-table td:nth-child(3) {
-  width: 7%;
-  padding-left: 0.5rem;
+  width: 8%;
+  padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(4),
 .liquidity-table td:nth-child(4) {
-  width: 13%;
+  width: 14%;
   padding-left: 0.75rem;
-  padding-right: 0.5rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(5),
 .liquidity-table td:nth-child(5) {
-  width: 7%;
-  padding-left: 0.5rem;
+  width: 8%;
+  padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(6),
 .liquidity-table td:nth-child(6) {
-  width: 11%;
+  width: 12%;
   padding-left: 0.75rem;
-  padding-right: 0.5rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(7),
 .liquidity-table td:nth-child(7) {
-  width: 18%;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  width: 20%;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:last-child,
 .liquidity-table td:last-child {
-  width: 20%;
-  padding-left: 0.5rem;
+  width: 12%;
+  padding-left: 0.75rem;
   padding-right: 0.75rem;
   text-align: center;
 }
@@ -115,58 +115,55 @@
   font-weight: 600;
   color: #FFFFFF;
   font-size: 0.7rem;
-  display: block;
-  overflow: visible;
-  word-break: break-word;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .trade-amount .token-amount {
   font-weight: 500;
   color: #E6EAF0;
   font-size: 0.7rem;
-  display: block;
-  overflow: visible;
-  word-break: break-word;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .trade-token .token-symbol {
   color: #9AA4B2;
   font-size: 0.65rem;
   font-weight: 500;
-  display: block;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .receive-amount .token-amount {
   font-weight: 500;
   color: #22C55E;
   font-size: 0.7rem;
-  display: block;
-  overflow: visible;
-  word-break: break-word;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .receive-token .token-symbol {
   color: #9AA4B2;
   font-size: 0.65rem;
   font-weight: 500;
-  display: block;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .receive-usd .usd-value {
   color: #9AA4B2;
   font-size: 0.65rem;
-  display: block;
-  overflow: visible;
-  word-break: break-word;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .price-cell .price-value {
   color: #9AA4B2;
   font-size: 0.65rem;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
-  display: block;
-  overflow: visible;
-  word-break: break-word;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .price-impact-cell {
@@ -187,7 +184,7 @@
   letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   overflow: visible;
-  white-space: normal;
+  white-space: nowrap;
   line-height: 1.3;
 }
 
@@ -197,7 +194,7 @@
   color: #E6EAF0;
   font-size: 0.7rem;
   overflow: visible;
-  white-space: normal;
+  white-space: nowrap;
   vertical-align: middle;
   line-height: 1.3;
 }
