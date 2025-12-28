@@ -349,6 +349,11 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
                 return `${value}%`;
               }}
             />
+            <defs>
+              <filter id="blur">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+              </filter>
+            </defs>
             <Tooltip 
               content={<CustomTooltip />}
               cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }}
@@ -356,6 +361,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               shared={false}
               trigger="hover"
               animationDuration={0}
+            />
+            <Line
+              type="monotone"
+              dataKey="priceImpact"
+              stroke="rgba(62,230,183,0.20)"
+              strokeWidth={6}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              connectNulls={false}
+              filter="url(#blur)"
             />
             <Line
               type="monotone"
