@@ -240,8 +240,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
   const maxTradeValue = Math.max(...chartData.map(d => d.tradeUsdValue || 0));
   const minTradeValue = Math.min(...chartData.map(d => d.tradeUsdValue || 0));
 
-  // Y-axis domain is exactly the cap - this shows what trade sizes fit within the cap
-  const yAxisMax = maxDisplayCap;
+  // Check if data exceeds the cap
   const hasDataAboveCap = maxPriceImpact > maxDisplayCap;
 
   return (
@@ -316,10 +315,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             stroke="#666"
           />
           <YAxis
-            domain={[0, yAxisMax]}
+            domain={(dataMin, dataMax) => [0, maxDisplayCap]}
+            type="number"
+            allowDataOverflow={true}
+            padding={{ top: 0, bottom: 0 }}
             label={{ value: 'Price Impact', angle: -90, position: 'insideLeft' }}
             stroke="#666"
-            tickFormatter={(value) => `${value}%`}
+            tickFormatter={(value) => {
+              // Only show ticks up to the cap
+              if (value > maxDisplayCap) return '';
+              return `${value}%`;
+            }}
           />
           <Tooltip 
             content={<CustomTooltip />}
