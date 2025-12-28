@@ -11,8 +11,8 @@
 }
 
 .chart-header {
-  height: 44px;
-  padding: 10px 16px;
+  height: 36px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,14 +29,6 @@
   flex-wrap: nowrap;
 }
 
-.chart-title {
-  color: #E6EAF0;
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  padding: 0;
-}
-
 .chart-meta {
   font-size: 13px;
   color: #9AA4B2;
@@ -51,10 +43,10 @@
 
 .chart-area {
   background: transparent;
-  padding: 12px 14px 14px 14px;
+  padding: 8px 10px 12px 10px;
   flex: 1;
   min-height: 0;
-  height: calc(100% - 44px);
+  height: calc(100% - 36px);
 }
 
 .price-info {

@@ -251,7 +251,6 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     <div className="liquidity-chart-container">
       <div className="chart-header">
         <div className="header-left-cluster">
-          <h2 className="chart-title">Price Impact</h2>
           {maxTradeValueWithinCap > 0 ? (
             <span className="chart-meta">
               Max trade within cap: <strong>{formatCurrency(maxTradeValueWithinCap)}</strong>
@@ -308,7 +307,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
-            margin={{ top: 6, right: 10, bottom: 26, left: 34 }}
+            margin={{ top: 6, right: 12, bottom: 30, left: 44 }}
           >
             <CartesianGrid 
               strokeDasharray="3 6" 
@@ -321,25 +320,30 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               scale="log"
               domain={[minTradeValue, maxTradeValue]}
               tickFormatter={(value) => {
-                if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(0)}B`;
+                if (value >= 100_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
+                if (value >= 10_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
                 if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
+                if (value >= 10_000) return `$${(value / 1_000).toFixed(0)}K`;
                 if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
                 return `$${value.toFixed(0)}`;
               }}
-              label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: -5 }}
+              label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: 14 }}
               stroke="rgba(255,255,255,0.08)"
-              tick={{ fill: '#7F8A9A', fontSize: 12 }}
+              tick={{ fill: '#7F8A9A', fontSize: 11 }}
               tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+              minTickGap={18}
+              interval="preserveStartEnd"
             />
             <YAxis
               domain={(dataMin, dataMax) => [0, maxDisplayCap]}
               type="number"
               allowDataOverflow={true}
               padding={{ top: 0, bottom: 0 }}
-              label={{ value: 'Price Impact (%)', angle: -90, position: 'insideLeft' }}
+              label={{ value: 'Price Impact (%)', angle: -90, position: 'insideLeft', offset: 12 }}
               stroke="rgba(255,255,255,0.08)"
-              tick={{ fill: '#7F8A9A', fontSize: 12 }}
+              tick={{ fill: '#7F8A9A', fontSize: 11 }}
               tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+              tickCount={4}
               tickFormatter={(value) => {
                 if (value > maxDisplayCap) return '';
                 return `${value}%`;
@@ -354,7 +358,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               animationDuration={0}
             />
             <Line
-              type="natural"
+              type="monotone"
               dataKey="priceImpact"
               stroke="#3EE6B7"
               strokeWidth={3}
@@ -366,6 +370,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               animationDuration={400}
               animationEasing="ease-out"
               connectNulls={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="priceImpact"
+              stroke="rgba(62,230,183,0.25)"
+              strokeWidth={6}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              connectNulls={false}
+              style={{ filter: 'blur(4px)' }}
             />
           </LineChart>
         </ResponsiveContainer>
