@@ -98,15 +98,15 @@
 
 .liquidity-table th:nth-child(7),
 .liquidity-table td:nth-child(7) {
-  width: 20%;
+  width: 15%;
   padding-left: 0.75rem;
-  padding-right: 0.75rem;
+  padding-right: 0.5rem;
 }
 
 .liquidity-table th:last-child,
 .liquidity-table td:last-child {
-  width: 12%;
-  padding-left: 0.75rem;
+  width: 17%;
+  padding-left: 0.5rem;
   padding-right: 0.75rem;
   text-align: center;
 }
