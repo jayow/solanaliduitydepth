@@ -304,7 +304,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       </div>
 
       <div className="chart-area">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={400}>
           <LineChart
             data={chartData}
             margin={{ top: 6, right: 12, bottom: 30, left: 44 }}
