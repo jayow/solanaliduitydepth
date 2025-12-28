@@ -10,6 +10,7 @@
   margin-bottom: 0.75rem;
   font-weight: 500;
   font-size: 0.875rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 .swap-panel {
@@ -47,15 +48,20 @@
   font-weight: 600;
   font-size: 1rem;
   color: #E6EAF0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  letter-spacing: -0.01em;
 }
 
 .token-name {
   font-size: 0.8rem;
   color: #9AA4B2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 .placeholder {
   color: #6B7280;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-weight: 400;
 }
 
 .dropdown-arrow {
@@ -91,6 +97,8 @@
   padding-right: 2.5rem;
   border: none;
   font-size: 0.9rem;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -170,23 +178,33 @@
   font-weight: 600;
   color: #E6EAF0;
   font-size: 0.95rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
 }
 
 .token-item .token-name {
   font-size: 0.8rem;
   color: #9AA4B2;
   margin-top: 0.15rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  line-height: 1.4;
 }
 
 .token-address {
   font-size: 0.7rem;
   color: #6B7280;
-  font-family: 'Courier New', monospace;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
   font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
 }
 
 .no-tokens {
   padding: 2rem;
   text-align: center;
   color: #6B7280;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
 }
