@@ -625,10 +625,12 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       break; // Stop and return what we have
     }
     
+    // Define these outside try block so they're available in error handler
+    const quoteInputMint = isBuy ? outputMint : inputMint;
+    const quoteOutputMint = isBuy ? inputMint : outputMint;
+    let rawAmount = null; // Will be set inside try block
+    
     try {
-      const quoteInputMint = isBuy ? outputMint : inputMint;
-      const quoteOutputMint = isBuy ? inputMint : outputMint;
-      
       // Convert fixed USD trade size to exact token amount needed
       // This ensures we test the exact USD value, not arbitrary token amounts
       let tokenAmount;
@@ -654,7 +656,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       }
       
       // Convert to raw amount (smallest unit)
-      const rawAmount = Math.floor(tokenAmount * Math.pow(10, quoteInputDecimals));
+      rawAmount = Math.floor(tokenAmount * Math.pow(10, quoteInputDecimals));
       if (rawAmount <= 0) {
         console.warn(`⚠️ Skipping ${formatUSD(usdAmount)} - calculated token amount too small: ${formatAmount(tokenAmount)}`);
         continue;
@@ -779,9 +781,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.error(`   This is a large trade size. Error details:`, {
             statusCode,
             error: errorMsg,
-            inputMint: quoteInputMint?.slice(0, 8),
-            outputMint: quoteOutputMint?.slice(0, 8),
-            rawAmount: rawAmount?.toLocaleString()
+            inputMint: quoteInputMint ? quoteInputMint.slice(0, 8) : inputMint?.slice(0, 8),
+            outputMint: quoteOutputMint ? quoteOutputMint.slice(0, 8) : outputMint?.slice(0, 8),
+            rawAmount: rawAmount ? rawAmount.toLocaleString() : 'N/A'
           });
         }
       } else {
