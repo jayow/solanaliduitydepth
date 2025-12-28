@@ -113,6 +113,11 @@
   width: 100%;
 }
 
+.status-message,
+.error-message {
+  width: 100%;
+}
+
 @media (min-width: 1200px) {
   .main-content-layout {
     flex-wrap: nowrap;

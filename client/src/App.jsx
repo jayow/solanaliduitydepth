@@ -273,6 +273,30 @@ function App() {
                       </button>
                     </div>
                   )}
+                  {statusMessage && (
+                    <div className={`status-message ${
+                      jupiterStatus === 'connected' ? 'status-success' : 
+                      jupiterStatus === 'rate_limited' ? 'status-error rate-limited' :
+                      jupiterStatus === 'error' ? 'status-error' : 
+                      'status-info'
+                    }`}>
+                      <span>{statusMessage}</span>
+                      {(jupiterStatus === 'error' || jupiterStatus === 'rate_limited') && (
+                        <button 
+                          className="retry-button" 
+                          onClick={checkJupiterStatus}
+                          title="Retry connection to Jupiter API"
+                        >
+                          🔄 Retry
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {error && (
+                    <div className="error-message">
+                      {error}
+                    </div>
+                  )}
                 </div>
 
                 <div className="liquidity-view-container">
@@ -343,35 +367,33 @@ function App() {
                     </button>
                   </div>
                 )}
+                {statusMessage && (
+                  <div className={`status-message ${
+                    jupiterStatus === 'connected' ? 'status-success' : 
+                    jupiterStatus === 'rate_limited' ? 'status-error rate-limited' :
+                    jupiterStatus === 'error' ? 'status-error' : 
+                    'status-info'
+                  }`}>
+                    <span>{statusMessage}</span>
+                    {(jupiterStatus === 'error' || jupiterStatus === 'rate_limited') && (
+                      <button 
+                        className="retry-button" 
+                        onClick={checkJupiterStatus}
+                        title="Retry connection to Jupiter API"
+                      >
+                        🔄 Retry
+                      </button>
+                    )}
+                  </div>
+                )}
+                {error && (
+                  <div className="error-message">
+                    {error}
+                  </div>
+                )}
               </div>
             )}
           </>
-        )}
-
-        {statusMessage && (
-          <div className={`status-message ${
-            jupiterStatus === 'connected' ? 'status-success' : 
-            jupiterStatus === 'rate_limited' ? 'status-error rate-limited' :
-            jupiterStatus === 'error' ? 'status-error' : 
-            'status-info'
-          }`}>
-            <span>{statusMessage}</span>
-            {(jupiterStatus === 'error' || jupiterStatus === 'rate_limited') && (
-              <button 
-                className="retry-button" 
-                onClick={checkJupiterStatus}
-                title="Retry connection to Jupiter API"
-              >
-                🔄 Retry
-              </button>
-            )}
-          </div>
-        )}
-
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
         )}
 
         {loading && (
