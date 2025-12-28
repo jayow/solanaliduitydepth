@@ -10,6 +10,13 @@
   padding: 1rem 0 0.5rem 0;
   padding-left: 0;
   margin-left: 0;
+  position: relative;
+}
+
+.app-header h1,
+.app-header p {
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .app-header h1 {
