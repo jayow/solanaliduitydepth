@@ -9,6 +9,10 @@
   margin-bottom: 1.5rem;
   padding: 1rem 0 0.5rem 0;
   position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .app-header h1,
@@ -22,16 +26,19 @@
 
 .app-header h1 {
   font-size: 1.75rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
   color: #FFFFFF;
   font-weight: 600;
   line-height: 1.2;
+  padding-left: 120px;
 }
 
-.app-header p {
+.app-header > p:first-of-type {
   font-size: 0.875rem;
   color: #9AA4B2;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
+  padding-left: 0;
+  margin-left: 0;
 }
 
 .app-credit {
