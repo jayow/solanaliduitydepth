@@ -82,7 +82,7 @@
   position: absolute;
   left: calc(var(--plotLeft));
   right: calc(var(--plotRight));
-  bottom: 2px;
+  bottom: 8px;
   display: block;
   width: 100%;
   text-align: center;
