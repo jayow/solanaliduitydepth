@@ -151,14 +151,12 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
                 </td>
                 <td className="receive-amount">
                   <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
-                  <span className="via-label"> via Jupiter</span>
                   <span className="slippage-badge" style={{
                     color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
-                    marginLeft: '0.5rem',
-                    fontSize: '0.85rem',
+                    fontSize: '0.8rem',
                     fontWeight: 600
                   }}>
-                    {row.priceImpact.toFixed(2)}% price impact
+                    {row.priceImpact.toFixed(2)}%
                   </span>
                 </td>
               </tr>
