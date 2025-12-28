@@ -354,9 +354,11 @@ function App() {
                       onSelect={setInputToken}
                     />
                     
-                    <button className="swap-button" onClick={swapTokens}>
-                      ⇅
-                    </button>
+                    <div className="swap-button-wrapper">
+                      <button className="swap-button" onClick={swapTokens}>
+                        <span className="swap-button-inner">⇅</span>
+                      </button>
+                    </div>
 
                     <TokenSelector
                       label="Output Token"

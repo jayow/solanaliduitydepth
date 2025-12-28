@@ -7,9 +7,9 @@
 .token-selector-label {
   display: block;
   color: #9AA4B2;
-  margin-bottom: 0.75rem;
+  margin-bottom: 10px;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
@@ -17,21 +17,27 @@
   background: #0F1620;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
-  padding: 1rem 1.25rem;
+  padding: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: all 150ms ease-out;
-  min-height: 64px;
+  min-height: auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-shadow: none;
 }
 
 .token-selector-button:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: #121923;
+  border-color: rgba(255, 255, 255, 0.10);
+  background: #101A25;
+}
+
+.token-selector-button:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.10);
+  outline-offset: 2px;
 }
 
 .selected-token {
@@ -42,8 +48,8 @@
 }
 
 .token-symbol {
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 18px;
   color: #E6EAF0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   letter-spacing: 0;
@@ -54,8 +60,9 @@
 }
 
 .token-name {
-  font-size: 0.8rem;
-  color: #9AA4B2;
+  font-size: 14px;
+  color: #7F8A9A;
+  font-weight: 500;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
@@ -69,6 +76,11 @@
   color: #9AA4B2;
   font-size: 0.75rem;
   margin-left: 1rem;
+  transition: color 150ms ease-out;
+}
+
+.token-selector-button:hover .dropdown-arrow {
+  color: #E6EAF0;
 }
 
 .token-dropdown {

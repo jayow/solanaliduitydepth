@@ -95,10 +95,11 @@
 .swap-card {
   background: #121923;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 18px;
+  padding: 20px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   width: 100%;
+  position: relative;
 }
 
 .token-count-info {
@@ -137,31 +138,73 @@
 
 .token-selector-container {
   display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.swap-button-wrapper {
+  position: relative;
+  height: 28px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  z-index: 10;
+  margin: -14px 0;
 }
 
 .swap-button {
-  background: #1A2433;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 1.2rem;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
   cursor: pointer;
-  color: #9AA4B2;
   transition: all 150ms ease-out;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
+  padding: 0;
+  background: transparent;
 }
 
-.swap-button:hover {
+.swap-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #121923;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  z-index: 1;
+}
+
+.swap-button-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #1A2433;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  color: #9AA4B2;
+  font-size: 1.2rem;
+  transition: all 150ms ease-out;
+}
+
+.swap-button:hover .swap-button-inner {
   background: #223047;
   color: #E6EAF0;
-  transform: rotate(180deg);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.60);
+  transform: translateY(-1px);
+}
+
+.swap-button:active .swap-button-inner {
+  background: #172233;
+  transform: translateY(0px);
 }
 
 .loading {
