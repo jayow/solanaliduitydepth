@@ -111,6 +111,14 @@
   text-align: center;
 }
 
+.trade-usd,
+.trade-amount,
+.receive-amount,
+.receive-usd,
+.price-cell {
+  text-align: center;
+}
+
 .trade-usd .usd-value-primary {
   font-weight: 600;
   color: #FFFFFF;
@@ -127,9 +135,13 @@
   white-space: nowrap;
 }
 
+.trade-token {
+  text-align: center;
+}
+
 .trade-token .token-symbol {
   color: #9AA4B2;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 500;
   display: inline-block;
   white-space: nowrap;
@@ -143,9 +155,13 @@
   white-space: nowrap;
 }
 
+.receive-token {
+  text-align: center;
+}
+
 .receive-token .token-symbol {
   color: #9AA4B2;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 500;
   display: inline-block;
   white-space: nowrap;
@@ -153,14 +169,14 @@
 
 .receive-usd .usd-value {
   color: #9AA4B2;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   display: inline-block;
   white-space: nowrap;
 }
 
 .price-cell .price-value {
   color: #9AA4B2;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
   display: inline-block;
   white-space: nowrap;
