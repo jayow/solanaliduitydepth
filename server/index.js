@@ -876,8 +876,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(trySmallerMsg);
           logs.push(trySmallerMsg);
           
-          // Try progressively smaller amounts: 40M, 30M, 20M, 15M, 12M
-          const smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000];
+          // Try progressively smaller amounts: 40M, 30M, 20M, 15M, 12M, 11M, 10.5M, 10M
+          // Jupiter frontend shows ~$11.5M output for $50M input, so try around that range
+          const smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
           let foundWorkingAmount = false;
           
           for (const smallerAmount of smallerAmounts) {
@@ -926,16 +927,24 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                   if (isFinite(price) && price > 0 && price < 1e10) {
                     const priceImpact = Math.abs(((price - baselinePrice) / baselinePrice) * 100);
                     
-                    depthPoints.push({
-                      price,
-                      amount: inputAmountReadable,
-                      outputAmount: outputAmountReadable,
-                      priceImpact,
-                      slippage: priceImpact,
-                      tradeUsdValue: smallerAmount, // Use the smaller amount that actually worked
-                      rawInputAmount: inputAmountRaw,
-                      rawOutputAmount: outputAmountRaw,
-                    });
+                    // Check if we already have this trade size to avoid duplicates
+                    const existingPoint = depthPoints.find(p => Math.abs(p.tradeUsdValue - smallerAmount) < 1000);
+                    if (!existingPoint) {
+                      depthPoints.push({
+                        price,
+                        amount: inputAmountReadable,
+                        outputAmount: outputAmountReadable,
+                        priceImpact,
+                        slippage: priceImpact,
+                        tradeUsdValue: smallerAmount, // Use the smaller amount that actually worked
+                        rawInputAmount: inputAmountRaw,
+                        rawOutputAmount: outputAmountRaw,
+                      });
+                    } else {
+                      const duplicateMsg = `   ⚠️ Skipping duplicate: ${formatUSD(smallerAmount)} already exists`;
+                      console.log(duplicateMsg);
+                      logs.push(duplicateMsg);
+                    }
                     
                     const partialSuccessMsg = `✅ ${formatUSD(smallerAmount)} (partial fill of ${formatUSD(usdAmount)}): ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
                     console.log(partialSuccessMsg);
@@ -1401,10 +1410,10 @@ app.get('/api/test-quote', async (req, res) => {
   }
 });
 
-app.listen(PORT, 'localhost', () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`\n🚀 Server running on http://127.0.0.1:${PORT}`);
   console.log(`📡 Jupiter API: ${JUPITER_QUOTE_URL} (with API key)`);
-  console.log(`🔗 Test endpoint: http://localhost:${PORT}/api/jupiter-status`);
+  console.log(`🔗 Test endpoint: http://127.0.0.1:${PORT}/api/jupiter-status`);
   console.log(`\n`);
 });
 
