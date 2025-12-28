@@ -307,7 +307,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
-            margin={{ top: 6, right: 12, bottom: 54, left: 52 }}
+            margin={{ top: 8, right: 12, bottom: 44, left: 46 }}
           >
             <CartesianGrid 
               strokeDasharray="3 6" 
@@ -327,7 +327,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
                 if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
                 return `$${value.toFixed(0)}`;
               }}
-              label={{ value: 'Trade Size (USD)', position: 'outside', offset: 18, style: { textAnchor: 'middle', fill: '#7F8A9A', fontSize: 12, fontWeight: 500 } }}
+              label={{ value: 'Trade Size (USD)', position: 'outside', offset: 16, style: { textAnchor: 'middle', fill: '#7F8A9A', fontSize: 12, fontWeight: 500 } }}
               stroke="rgba(255,255,255,0.10)"
               tick={{ fill: '#7F8A9A', fontSize: 11 }}
               tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
@@ -339,7 +339,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               type="number"
               allowDataOverflow={true}
               padding={{ top: 0, bottom: 0 }}
-              label={{ value: 'Price Impact (%)', angle: -90, position: 'outside', offset: 16, style: { textAnchor: 'middle', fill: '#7F8A9A', fontSize: 12, fontWeight: 500 } }}
+              label={{ value: 'Price Impact (%)', angle: -90, position: 'outside', offset: 14, style: { textAnchor: 'middle', fill: '#7F8A9A', fontSize: 12, fontWeight: 500 } }}
               stroke="rgba(255,255,255,0.10)"
               tick={{ fill: '#7F8A9A', fontSize: 11 }}
               tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}

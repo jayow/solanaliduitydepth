@@ -45,10 +45,13 @@
 
 .chart-area {
   background: transparent;
-  padding: 10px 12px 12px 12px;
+  padding: 10px 12px 10px 12px;
   flex: 1;
   min-height: 360px;
+  width: 100%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .price-info {
