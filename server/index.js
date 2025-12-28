@@ -374,6 +374,8 @@ async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries
           outputMint,
           amount: amount.toString(),
           slippageBps: slippageBps.toString(),
+          onlyDirectRoutes: 'false', // Allow multi-hop routes for better liquidity
+          asLegacyTransaction: 'false',
         },
         headers: {
           'Accept': 'application/json',
@@ -855,10 +857,124 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       }
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error';
+      const errorCode = error.response?.data?.errorCode;
       const statusCode = error.response?.status;
       const fullErrorData = error.response?.data;
       
-      // Log detailed error info
+      // Handle "route plan does not consume all the amount" error
+      // This means Jupiter can route part of the amount but not all of it
+      // We should try progressively smaller amounts to find the maximum routable amount
+      if (errorCode === 'ROUTE_PLAN_DOES_NOT_CONSUME_ALL_THE_AMOUNT' || 
+          errorMsg?.includes('does not consume all the amount')) {
+        const partialFillMsg = `⚠️ Jupiter cannot route full ${formatUSD(usdAmount)} - route plan doesn't consume all amount`;
+        console.warn(partialFillMsg);
+        logs.push(partialFillMsg);
+        
+        // For very large amounts ($50M+), try progressively smaller amounts
+        if (usdAmount >= 50000000) {
+          const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
+          console.log(trySmallerMsg);
+          logs.push(trySmallerMsg);
+          
+          // Try progressively smaller amounts: 40M, 30M, 20M, 15M, 12M
+          const smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000];
+          let foundWorkingAmount = false;
+          
+          for (const smallerAmount of smallerAmounts) {
+            if (foundWorkingAmount) break;
+            
+            try {
+              // Calculate token amount for the smaller USD amount
+              let smallerTokenAmount;
+              if (isBuy) {
+                smallerTokenAmount = smallerAmount;
+              } else {
+                smallerTokenAmount = baselinePrice && baselinePrice > 0 
+                  ? smallerAmount / baselinePrice 
+                  : smallerAmount / 100;
+              }
+              
+              const smallerRawAmount = Math.floor(smallerTokenAmount * Math.pow(10, quoteInputDecimals));
+              
+              if (smallerRawAmount <= 0) continue;
+              
+              const tryMsg = `   🔄 Trying ${formatUSD(smallerAmount)} instead...`;
+              console.log(tryMsg);
+              logs.push(tryMsg);
+              
+              // Small delay before retry
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              const smallerQuote = await getQuote(quoteInputMint, quoteOutputMint, smallerRawAmount, 50, 3);
+              
+              if (smallerQuote?.outAmount && smallerQuote?.inAmount) {
+                const successMsg = `   ✅ Found working amount: ${formatUSD(smallerAmount)}`;
+                console.log(successMsg);
+                logs.push(successMsg);
+                
+                // Process this smaller amount
+                const inputAmountRaw = isBuy ? smallerQuote.outAmount : smallerQuote.inAmount;
+                const outputAmountRaw = isBuy ? smallerQuote.inAmount : smallerQuote.outAmount;
+                
+                const inputAmountReadable = parseFloat(inputAmountRaw) / Math.pow(10, inputDecimals);
+                const outputAmountReadable = parseFloat(outputAmountRaw) / Math.pow(10, outputDecimals);
+                
+                if (isFinite(inputAmountReadable) && inputAmountReadable > 0 && 
+                    isFinite(outputAmountReadable) && outputAmountReadable > 0) {
+                  const price = outputAmountReadable / inputAmountReadable;
+                  
+                  if (isFinite(price) && price > 0 && price < 1e10) {
+                    const priceImpact = Math.abs(((price - baselinePrice) / baselinePrice) * 100);
+                    
+                    depthPoints.push({
+                      price,
+                      amount: inputAmountReadable,
+                      outputAmount: outputAmountReadable,
+                      priceImpact,
+                      slippage: priceImpact,
+                      tradeUsdValue: smallerAmount, // Use the smaller amount that actually worked
+                      rawInputAmount: inputAmountRaw,
+                      rawOutputAmount: outputAmountRaw,
+                    });
+                    
+                    const partialSuccessMsg = `✅ ${formatUSD(smallerAmount)} (partial fill of ${formatUSD(usdAmount)}): ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
+                    console.log(partialSuccessMsg);
+                    logs.push(partialSuccessMsg);
+                    foundWorkingAmount = true;
+                  }
+                }
+              }
+            } catch (smallerError) {
+              // Continue to next smaller amount
+              continue;
+            }
+          }
+          
+          if (!foundWorkingAmount) {
+            const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)}`;
+            console.error(noRouteMsg);
+            logs.push(noRouteMsg);
+          }
+        }
+        
+        // Store error but don't treat it as fatal
+        errors.push({
+          tradeSize: usdAmount,
+          tradeSizeFormatted: formatUSD(usdAmount),
+          error: errorMsg,
+          errorCode: errorCode,
+          statusCode: statusCode,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Continue to next amount
+        const skipMsg = `⏭️ Skipping ${formatUSD(usdAmount)} due to routing limitation, continuing to next trade size...`;
+        console.log(skipMsg);
+        logs.push(skipMsg);
+        continue; // Skip to next iteration
+      }
+      
+      // Log detailed error info for other errors
       if (statusCode === 429) {
         const rateLimitMsg = `⚠️ Rate limited for ${formatUSD(usdAmount)} - exhausted all retries`;
         console.error(rateLimitMsg);
@@ -873,6 +989,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           const errorDetails = {
             statusCode,
             error: errorMsg,
+            errorCode: errorCode,
             fullError: fullErrorData ? JSON.stringify(fullErrorData) : 'N/A',
             inputMint: quoteInputMint ? quoteInputMint.slice(0, 8) : inputMint?.slice(0, 8),
             outputMint: quoteOutputMint ? quoteOutputMint.slice(0, 8) : outputMint?.slice(0, 8),
