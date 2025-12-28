@@ -11,8 +11,8 @@
 }
 
 .chart-header {
-  height: 36px;
-  padding: 8px 16px;
+  height: 40px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -43,10 +43,9 @@
 
 .chart-area {
   background: transparent;
-  padding: 8px 10px 12px 10px;
+  padding: 10px 12px 14px 12px;
   flex: 1;
-  min-height: 0;
-  height: calc(100% - 36px);
+  min-height: 360px;
 }
 
 .price-info {
