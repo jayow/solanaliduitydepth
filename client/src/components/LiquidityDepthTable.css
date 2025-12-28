@@ -37,23 +37,30 @@
   overflow-x: auto;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .liquidity-table {
-  width: 100%;
+  width: auto;
+  min-width: 100%;
   border-collapse: collapse;
   background: #121923;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .liquidity-table th:first-child,
 .liquidity-table td:first-child {
-  width: 35%;
+  width: auto;
+  min-width: 180px;
+  max-width: 220px;
 }
 
 .liquidity-table th:last-child,
 .liquidity-table td:last-child {
-  width: 65%;
+  width: auto;
+  min-width: 280px;
+  max-width: 350px;
 }
 
 .liquidity-table thead {
