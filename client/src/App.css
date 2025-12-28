@@ -1,6 +1,8 @@
 .app {
   min-height: 100vh;
   padding: 2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
 
 .app-header {
@@ -11,6 +13,8 @@
   margin-left: 0;
   padding-left: 0;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .app-header h1,
@@ -56,8 +60,12 @@
 
 .app-main {
   max-width: 1400px;
-  margin: 0 auto;
+  margin-left: 0;
+  margin-right: auto;
   padding-left: 0;
+  padding-right: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .token-count-info {
