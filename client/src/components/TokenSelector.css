@@ -46,9 +46,31 @@
 }
 
 .token-selector-button.selected {
-  border: 1px solid rgba(170, 255, 90, 0.35);
+  border: 1px solid rgba(170, 255, 90, 0.5);
   background: #101A25;
-  box-shadow: 0 0 0 1px rgba(170, 255, 90, 0.18), 0 0 28px rgba(170, 255, 90, 0.12);
+  box-shadow: 
+    0 0 0 1px rgba(170, 255, 90, 0.25),
+    0 0 20px rgba(170, 255, 90, 0.2),
+    0 0 40px rgba(170, 255, 90, 0.15),
+    inset 0 0 20px rgba(170, 255, 90, 0.05);
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 1px rgba(170, 255, 90, 0.25),
+      0 0 20px rgba(170, 255, 90, 0.2),
+      0 0 40px rgba(170, 255, 90, 0.15),
+      inset 0 0 20px rgba(170, 255, 90, 0.05);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 1px rgba(170, 255, 90, 0.35),
+      0 0 30px rgba(170, 255, 90, 0.3),
+      0 0 60px rgba(170, 255, 90, 0.2),
+      inset 0 0 30px rgba(170, 255, 90, 0.08);
+  }
 }
 
 .token-selector-button.selected::after {
@@ -58,7 +80,8 @@
   left: 16px;
   right: 16px;
   height: 1px;
-  background: rgba(170, 255, 90, 0.12);
+  background: rgba(170, 255, 90, 0.3);
+  box-shadow: 0 0 8px rgba(170, 255, 90, 0.4);
 }
 
 .selected-token {

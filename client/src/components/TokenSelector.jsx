@@ -122,9 +122,15 @@ function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = fa
             onFocusChange(label.toLowerCase().includes('input') ? 'input' : 'output');
           }
         }}
-        onBlur={() => {
-          if (onFocusChange) {
-            onFocusChange(null);
+        onBlur={(e) => {
+          // Only blur if focus is not moving to dropdown
+          if (!dropdownRef.current?.contains(e.relatedTarget)) {
+            // Delay blur to allow click events to register
+            setTimeout(() => {
+              if (onFocusChange && !isOpen) {
+                onFocusChange(null);
+              }
+            }, 200);
           }
         }}
         tabIndex={0}
