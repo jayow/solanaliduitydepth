@@ -11,6 +11,7 @@
   position: relative;
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
 }
@@ -44,11 +45,11 @@
 .app-credit {
   font-size: 0.875rem;
   color: #7F8A9A;
-  margin-top: 1rem;
+  margin-top: 0;
   font-weight: 400;
-  width: 100%;
-  padding-left: 120px;
-  flex-basis: 100%;
+  padding-left: 0;
+  margin-left: auto;
+  flex-basis: auto;
 }
 
 .credit-link {
