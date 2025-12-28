@@ -268,6 +268,12 @@ function getFallbackTokens() {
       decimals: 6,
     },
     {
+      address: '3ThdFZQKM6kRyVGLG48kaPg5TRMhYMKY1iCRa9xop1WC',
+      symbol: 'eUSX',
+      name: 'Solstice eUSX',
+      decimals: 6,
+    },
+    {
       address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
       symbol: 'USDT',
       name: 'Tether USD',
