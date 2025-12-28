@@ -48,14 +48,22 @@
 
 .liquidity-table th:first-child,
 .liquidity-table td:first-child {
-  width: 30%;
-  padding-right: 0.5rem;
+  width: 35%;
+}
+
+.liquidity-table th:nth-child(2),
+.liquidity-table td:nth-child(2) {
+  width: 45%;
 }
 
 .liquidity-table th:last-child,
 .liquidity-table td:last-child {
-  width: 70%;
-  padding-left: 0.5rem;
+  width: 20%;
+  text-align: center;
+}
+
+.price-impact-cell {
+  text-align: center;
 }
 
 .liquidity-table thead {

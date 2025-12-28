@@ -138,8 +138,9 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
         <table className="liquidity-table">
           <thead>
             <tr>
-              <th>Trade</th>
-              <th>Receive</th>
+              <th>Trade Size</th>
+              <th>Receive Amount</th>
+              <th>Price Impact</th>
             </tr>
           </thead>
           <tbody>
@@ -151,6 +152,8 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
                 </td>
                 <td className="receive-amount">
                   <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
+                </td>
+                <td className="price-impact-cell">
                   <span className="slippage-badge" style={{
                     color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
                     fontSize: '0.8rem',
