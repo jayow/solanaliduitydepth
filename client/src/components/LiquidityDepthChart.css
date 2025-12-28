@@ -57,12 +57,12 @@
 
 .axis-label-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 10;
 }
 
 .x-axis-label {
