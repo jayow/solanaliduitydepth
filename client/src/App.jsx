@@ -215,10 +215,13 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Solana Liquidity Depth</h1>
-        <p>Visualize liquidity depth using Jupiter aggregator</p>
+        <div className="app-header-left">
+          <h1>Solana Liquidity Depth</h1>
+          <p>Visualize liquidity depth using Jupiter aggregator</p>
+        </div>
+        <div></div>
         <p className="app-credit">
-          Made with ❤️ by{' '}
+          Made with <span style={{ color: '#EF4444' }}>❤️</span> by{' '}
           <a 
             href="https://twitter.com/jayowtrades" 
             target="_blank" 
