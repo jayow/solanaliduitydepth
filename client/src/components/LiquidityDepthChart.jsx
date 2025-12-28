@@ -59,7 +59,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
           tradeUsdValue,
           tradeAmount: point1.tradeAmount + (point2.tradeAmount - point1.tradeAmount) * ratio,
           receiveAmount: point1.receiveAmount + (point2.receiveAmount - point1.receiveAmount) * ratio,
-          slippage: point1.slippage + (point2.slippage - point1.slippage) * ratio,
+          priceImpact: point1.priceImpact + (point2.priceImpact - point1.priceImpact) * ratio,
+          slippage: point1.slippage + (point2.slippage - point1.slippage) * ratio, // Keep for compatibility
           price: point1.price + (point2.price - point1.price) * ratio,
         };
         
@@ -85,12 +86,14 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     const bestPrice = depthToUse[0]?.price || 0;
     if (bestPrice === 0) return [];
 
-    // Calculate slippage for each point and use tradeUsdValue from backend if available
+    // Calculate price impact for each point and use tradeUsdValue from backend if available
     const baseData = depthToUse.map(point => {
-      // Use slippage from backend if available, otherwise calculate it
-      const slippage = point.slippage !== undefined 
-        ? point.slippage 
-        : (bestPrice > 0 ? Math.abs((bestPrice - point.price) / bestPrice) * 100 : 0);
+      // Use priceImpact from backend if available, fallback to slippage for backward compatibility
+      const priceImpact = point.priceImpact !== undefined 
+        ? point.priceImpact 
+        : (point.slippage !== undefined 
+          ? point.slippage 
+          : (bestPrice > 0 ? Math.abs((bestPrice - point.price) / bestPrice) * 100 : 0));
       
       // Use tradeUsdValue from backend if available, otherwise calculate it
       const tradeUsdValue = point.tradeUsdValue || (point.amount * bestPrice);
@@ -98,11 +101,12 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       return {
         tradeAmount: point.amount,
         tradeUsdValue,
-        slippage,
+        priceImpact, // Primary: Price Impact
+        slippage: point.slippage || priceImpact, // Keep for backward compatibility
         receiveAmount: point.outputAmount,
         price: point.price,
       };
-    }).filter(point => point.tradeUsdValue > 0 && point.slippage >= 0);
+    }).filter(point => point.tradeUsdValue > 0 && point.priceImpact >= 0);
     
     // Densify the data to allow hovering at any point
     return densifyData(baseData, 15); // 15 interpolated points between each pair
@@ -164,7 +168,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       tradeUsdValue: xValue,
       tradeAmount: lowerPoint.tradeAmount + (upperPoint.tradeAmount - lowerPoint.tradeAmount) * ratio,
       receiveAmount: lowerPoint.receiveAmount + (upperPoint.receiveAmount - lowerPoint.receiveAmount) * ratio,
-      slippage: lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio,
+      priceImpact: lowerPoint.priceImpact + (upperPoint.priceImpact - lowerPoint.priceImpact) * ratio,
+      slippage: lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio, // Keep for compatibility
       price: lowerPoint.price + (upperPoint.price - lowerPoint.price) * ratio,
     };
   };
@@ -175,7 +180,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       
       if (!data) return null;
       
-      const slippageColor = data.slippage > 5 ? '#ef4444' : data.slippage > 1 ? '#f59e0b' : '#10b981';
+      const priceImpact = data.priceImpact !== undefined ? data.priceImpact : data.slippage;
+      const priceImpactColor = priceImpact > 5 ? '#ef4444' : priceImpact > 1 ? '#f59e0b' : '#10b981';
       
       return (
         <div className="custom-tooltip">
@@ -203,9 +209,9 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               </span>
             </div>
             <div className="tooltip-row">
-              <span className="tooltip-label">Slippage:</span>
-              <span className="tooltip-value" style={{ color: slippageColor, fontWeight: 'bold' }}>
-                {data.slippage?.toFixed(2) || '0.00'}%
+              <span className="tooltip-label">Price Impact:</span>
+              <span className="tooltip-value" style={{ color: priceImpactColor, fontWeight: 'bold' }}>
+                {priceImpact?.toFixed(2) || '0.00'}%
               </span>
             </div>
           </div>
@@ -223,17 +229,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     );
   }
 
-  const maxSlippage = Math.max(...chartData.map(d => d.slippage || 0));
+  const maxPriceImpact = Math.max(...chartData.map(d => d.priceImpact || d.slippage || 0));
   const maxTradeValue = Math.max(...chartData.map(d => d.tradeUsdValue || 0));
   const minTradeValue = Math.min(...chartData.map(d => d.tradeUsdValue || 0));
 
   return (
     <div className="liquidity-chart-container">
       <div className="chart-header">
-        <h2>Slippage</h2>
+        <h2>Price Impact</h2>
         <div className="slippage-range">
           <span>Min <strong>0%</strong></span>
-          <span>Max <strong>{Math.min(maxSlippage, 100).toFixed(1)}%</strong></span>
+          <span>Max <strong>{Math.min(maxPriceImpact, 100).toFixed(1)}%</strong></span>
         </div>
       </div>
 
@@ -258,8 +264,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             stroke="#666"
           />
           <YAxis
-            domain={[0, Math.min(Math.max(maxSlippage * 1.1, 10), 100)]}
-            label={{ value: 'Slippage', angle: -90, position: 'insideLeft' }}
+            domain={[0, Math.min(Math.max(maxPriceImpact * 1.1, 10), 100)]}
+            label={{ value: 'Price Impact', angle: -90, position: 'insideLeft' }}
             stroke="#666"
             tickFormatter={(value) => `${value}%`}
           />
@@ -273,7 +279,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
           />
           <Line
             type="monotone"
-            dataKey="slippage"
+            dataKey="priceImpact"
             stroke="#10b981"
             strokeWidth={3}
             dot={false}

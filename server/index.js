@@ -717,17 +717,23 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(`✅ Using first successful quote as baseline price: ${baselinePrice.toFixed(6)}`);
         }
         
-        // Use baseline price for slippage calculation
+        // Use baseline price for price impact calculation
         const referencePrice = baselinePrice;
         
-        // Calculate slippage (price impact)
-        const slippage = referencePrice > 0 
+        // Calculate price impact (how much price changes from baseline due to trade size)
+        // This is technically "price impact" not "slippage", but we keep both terms for compatibility
+        // Price Impact = |(execution_price - baseline_price) / baseline_price| * 100
+        const priceImpact = referencePrice > 0 
           ? Math.abs((price - referencePrice) / referencePrice) * 100 
           : 0;
         
-        // Validate slippage is reasonable (warn if extreme, but don't skip)
-        if (slippage > 1000) {
-          console.warn(`⚠️ Extreme slippage detected: ${slippage.toFixed(2)}% for ${formatUSD(usdAmount)}`);
+        // Slippage is the same as price impact in this context (no market movement during execution)
+        // In real trading, slippage can include price impact + market movement + MEV
+        const slippage = priceImpact;
+        
+        // Validate price impact is reasonable (warn if extreme, but don't skip)
+        if (priceImpact > 1000) {
+          console.warn(`⚠️ Extreme price impact detected: ${priceImpact.toFixed(2)}% for ${formatUSD(usdAmount)}`);
         }
         
         // Validate that amounts are monotonically increasing (for cumulative calculation)
@@ -748,14 +754,14 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           amount: inputAmountReadable, // Token amount we actually traded (calculated from USD)
           // cumulativeLiquidity will be calculated after all points are collected
           outputAmount: outputAmountReadable, // Token amount we received
-          priceImpact: slippage, // Keep priceImpact for backward compatibility
-          slippage, // Slippage percentage from baseline price
+          priceImpact, // Price impact: how much price changes from baseline due to trade size
+          slippage, // Slippage: same as price impact in this context (no market movement)
           tradeUsdValue, // Fixed USD trade size we tested (this is the key value)
           rawInputAmount: inputAmountRaw,
           rawOutputAmount: outputAmountRaw,
         });
         
-        console.log(`✅ ${formatUSD(usdAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, slippage: ${slippage.toFixed(2)}%`);
+        console.log(`✅ ${formatUSD(usdAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`);
       } else {
         console.warn(`⚠️ Invalid quote response for ${formatUSD(usdAmount)}:`, quote ? 'Missing outAmount/inAmount' : 'No quote data');
       }
@@ -812,8 +818,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     }
     
     // Additional validation: check for extreme values
-    if (point.slippage > 1000) {
-      console.warn(`⚠️ Extreme slippage detected: ${point.slippage.toFixed(2)}% for ${formatUSD(point.tradeUsdValue)}`);
+    const priceImpact = point.priceImpact !== undefined ? point.priceImpact : point.slippage;
+    if (priceImpact > 1000) {
+      console.warn(`⚠️ Extreme price impact detected: ${priceImpact.toFixed(2)}% for ${formatUSD(point.tradeUsdValue)}`);
     }
     
     if (point.price <= 0 || !isFinite(point.price) || point.price > 1e10) {

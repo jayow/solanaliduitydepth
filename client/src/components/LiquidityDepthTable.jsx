@@ -51,10 +51,12 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
 
       if (!closestPoint) return;
 
-      // Use slippage from backend if available, otherwise calculate it
-      const slippage = closestPoint.slippage !== undefined 
-        ? closestPoint.slippage 
-        : (bestPrice > 0 ? Math.abs((bestPrice - closestPoint.price) / bestPrice) * 100 : 0);
+      // Use priceImpact from backend if available, fallback to slippage for backward compatibility
+      const priceImpact = closestPoint.priceImpact !== undefined 
+        ? closestPoint.priceImpact 
+        : (closestPoint.slippage !== undefined 
+          ? closestPoint.slippage 
+          : (bestPrice > 0 ? Math.abs((bestPrice - closestPoint.price) / bestPrice) * 100 : 0));
 
       // Get actual USD value from backend or calculate it
       const actualTradeUsdValue = closestPoint.tradeUsdValue || (closestPoint.amount * bestPrice);
@@ -83,7 +85,8 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
         receiveAmount: closestPoint.outputAmount,
         receiveUsdValue,
         price: closestPoint.price,
-        slippage,
+        priceImpact, // Primary: Price Impact
+        slippage: closestPoint.slippage || priceImpact, // Keep for backward compatibility
       });
     });
 
@@ -151,12 +154,12 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
                   <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
                   <span className="via-label"> via Jupiter</span>
                   <span className="slippage-badge" style={{
-                    color: row.slippage > 5 ? '#ef4444' : row.slippage > 1 ? '#f59e0b' : '#10b981',
+                    color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
                     marginLeft: '0.5rem',
                     fontSize: '0.85rem',
                     fontWeight: 600
                   }}>
-                    {row.slippage.toFixed(2)}% slippage
+                    {row.priceImpact.toFixed(2)}% price impact
                   </span>
                 </td>
               </tr>
