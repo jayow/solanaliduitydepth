@@ -74,13 +74,38 @@
   color: #E6EAF0;
 }
 
+.main-content-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
 .swap-card {
   background: #121923;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 1.5rem;
-  margin-bottom: 2rem;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  flex: 0 0 auto;
+  min-width: 320px;
+  max-width: 400px;
+}
+
+@media (min-width: 1200px) {
+  .main-content-layout {
+    flex-wrap: nowrap;
+  }
+  
+  .swap-card {
+    flex: 0 0 380px;
+  }
+  
+  .liquidity-view-container {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .token-selector-container {
@@ -215,7 +240,8 @@
 }
 
 .liquidity-view-container {
-  margin-top: 2rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .view-mode-selector {

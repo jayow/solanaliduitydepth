@@ -249,27 +249,86 @@ function App() {
                 </button>
               </div>
             )}
-            <div className="swap-card">
-              <div className="token-selector-container">
-                <TokenSelector
-                  label="Input Token"
-                  tokens={tokens}
-                  selectedToken={inputToken}
-                  onSelect={setInputToken}
-                />
-                
-                <button className="swap-button" onClick={swapTokens}>
-                  ⇅
-                </button>
+            {!loading && inputToken && outputToken ? (
+              <div className="main-content-layout">
+                <div className="swap-card">
+                  <div className="token-selector-container">
+                    <TokenSelector
+                      label="Input Token"
+                      tokens={tokens}
+                      selectedToken={inputToken}
+                      onSelect={setInputToken}
+                    />
+                    
+                    <button className="swap-button" onClick={swapTokens}>
+                      ⇅
+                    </button>
 
-                <TokenSelector
-                  label="Output Token"
-                  tokens={tokens}
-                  selectedToken={outputToken}
-                  onSelect={setOutputToken}
-                />
+                    <TokenSelector
+                      label="Output Token"
+                      tokens={tokens}
+                      selectedToken={outputToken}
+                      onSelect={setOutputToken}
+                    />
+                  </div>
+                </div>
+
+                <div className="liquidity-view-container">
+                  <div className="view-mode-selector">
+                    <button 
+                      className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
+                      onClick={() => setViewMode('table')}
+                    >
+                      📊 Table View
+                    </button>
+                    <button 
+                      className={`view-mode-btn ${viewMode === 'chart' ? 'active' : ''}`}
+                      onClick={() => setViewMode('chart')}
+                    >
+                      📈 Chart View
+                    </button>
+                  </div>
+
+                  {viewMode === 'table' ? (
+                    <LiquidityDepthTable
+                      buyDepth={buyDepth}
+                      sellDepth={sellDepth}
+                      inputToken={inputToken}
+                      outputToken={outputToken}
+                    />
+                  ) : (
+                    <LiquidityDepthChart
+                      buyDepth={buyDepth}
+                      sellDepth={sellDepth}
+                      inputToken={inputToken}
+                      outputToken={outputToken}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="swap-card">
+                <div className="token-selector-container">
+                  <TokenSelector
+                    label="Input Token"
+                    tokens={tokens}
+                    selectedToken={inputToken}
+                    onSelect={setInputToken}
+                  />
+                  
+                  <button className="swap-button" onClick={swapTokens}>
+                    ⇅
+                  </button>
+
+                  <TokenSelector
+                    label="Output Token"
+                    tokens={tokens}
+                    selectedToken={outputToken}
+                    onSelect={setOutputToken}
+                  />
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -306,41 +365,6 @@ function App() {
             <p className="loading-subtext">
               ⏱️ Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
             </p>
-          </div>
-        )}
-
-        {!loading && inputToken && outputToken && (
-          <div className="liquidity-view-container">
-            <div className="view-mode-selector">
-              <button 
-                className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
-                onClick={() => setViewMode('table')}
-              >
-                📊 Table View
-              </button>
-              <button 
-                className={`view-mode-btn ${viewMode === 'chart' ? 'active' : ''}`}
-                onClick={() => setViewMode('chart')}
-              >
-                📈 Chart View
-              </button>
-            </div>
-
-            {viewMode === 'table' ? (
-              <LiquidityDepthTable
-                buyDepth={buyDepth}
-                sellDepth={sellDepth}
-                inputToken={inputToken}
-                outputToken={outputToken}
-              />
-            ) : (
-              <LiquidityDepthChart
-                buyDepth={buyDepth}
-                sellDepth={sellDepth}
-                inputToken={inputToken}
-                outputToken={outputToken}
-              />
-            )}
           </div>
         )}
       </main>
