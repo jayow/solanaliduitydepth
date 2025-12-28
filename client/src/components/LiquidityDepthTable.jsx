@@ -138,69 +138,43 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
         <table className="liquidity-table">
           <thead>
             <tr>
-              {tableData.slice(0, 4).map((_, index) => (
-                <th key={index} className="trade-size-header">
-                  <div className="header-content">
-                    <span className="header-trade">{formatCurrency(tableData[index]?.tradeUsdValue || 0)}</span>
-                  </div>
-                </th>
-              ))}
+              <th>Trade Size (USD)</th>
+              <th>Trade Amount</th>
+              <th>Receive Amount</th>
+              <th>Receive (USD)</th>
+              <th>Price</th>
+              <th>Price Impact</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              {tableData.slice(0, 4).map((row, index) => (
-                <td key={index} className="trade-data-cell">
-                  <div className="cell-content">
-                    <div className="cell-receive">
-                      <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
-                    </div>
-                    <div className="cell-impact">
-                      <span className="slippage-badge" style={{
-                        color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
-                        fontSize: '0.75rem',
-                        fontWeight: 600
-                      }}>
-                        {row.priceImpact.toFixed(2)}%
-                      </span>
-                    </div>
-                  </div>
+            {tableData.map((row, index) => (
+              <tr key={index}>
+                <td className="trade-usd">
+                  <span className="usd-value-primary">{formatCurrency(row.tradeUsdValue)}</span>
                 </td>
-              ))}
-            </tr>
-            {tableData.length > 4 && (
-              <>
-                <tr>
-                  {tableData.slice(4, 8).map((_, index) => (
-                    <th key={index} className="trade-size-header">
-                      <div className="header-content">
-                        <span className="header-trade">{formatCurrency(tableData[index + 4]?.tradeUsdValue || 0)}</span>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-                <tr>
-                  {tableData.slice(4, 8).map((row, index) => (
-                    <td key={index} className="trade-data-cell">
-                      <div className="cell-content">
-                        <div className="cell-receive">
-                          <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
-                        </div>
-                        <div className="cell-impact">
-                          <span className="slippage-badge" style={{
-                            color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
-                            fontSize: '0.75rem',
-                            fontWeight: 600
-                          }}>
-                            {row.priceImpact.toFixed(2)}%
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-              </>
-            )}
+                <td className="trade-amount">
+                  <span className="token-amount">{formatTokenAmount(row.tradeAmount)} {inputToken?.symbol}</span>
+                </td>
+                <td className="receive-amount">
+                  <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
+                </td>
+                <td className="receive-usd">
+                  <span className="usd-value">{formatCurrency(row.receiveUsdValue)}</span>
+                </td>
+                <td className="price-cell">
+                  <span className="price-value">{row.price.toFixed(6)}</span>
+                </td>
+                <td className="price-impact-cell">
+                  <span className="slippage-badge" style={{
+                    color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
+                    fontSize: '0.8rem',
+                    fontWeight: 600
+                  }}>
+                    {row.priceImpact.toFixed(2)}%
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
