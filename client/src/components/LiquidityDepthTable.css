@@ -1,24 +1,24 @@
 .liquidity-table-container {
-  background: #121923;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: #0F1720;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 16px;
   margin-top: 0;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .table-header h2 {
   color: #E6EAF0;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   margin: 0;
   font-weight: 600;
 }
@@ -26,11 +26,11 @@
 .price-info {
   background: #0F1620;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 8px;
   font-weight: 600;
   color: #E6EAF0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .liquidity-table-wrapper {
@@ -50,21 +50,21 @@
 }
 
 .liquidity-table th {
-  padding: 0.875rem 1.25rem;
+  padding: 0.6rem 0.875rem;
   text-align: left;
   font-weight: 600;
   color: #9AA4B2;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .liquidity-table td {
-  padding: 1rem 1.25rem;
+  padding: 0.7rem 0.875rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   color: #E6EAF0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .liquidity-table tbody tr {
@@ -150,11 +150,11 @@
 .via-label {
   font-weight: 400;
   color: #6B7280;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .slippage-badge {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
