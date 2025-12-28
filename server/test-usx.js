@@ -32,12 +32,36 @@ async function testUSX() {
       },
       timeout: 150000 // 150 seconds timeout
     });
+    
+    // Check if server is running new code
+    console.log('\n🔍 Checking server code version...');
+    console.log(`   Response has 'debug' key: ${!!buyResponse.data.debug}`);
+    console.log(`   Response keys: ${Object.keys(buyResponse.data).join(', ')}`);
+    if (buyResponse.data.debug) {
+      console.log(`   Debug object keys: ${Object.keys(buyResponse.data.debug).join(', ')}`);
+      console.log(`   Logs count: ${buyResponse.data.debug.logs?.length || 0}`);
+      console.log(`   Errors count: ${buyResponse.data.debug.errors?.length || 0}`);
+    } else {
+      console.log('   ⚠️ Server is running OLD CODE - debug object missing!');
+      console.log('   Server needs to be restarted to load new code.');
+    }
+    console.log('');
     const buyDuration = ((Date.now() - buyStartTime) / 1000).toFixed(2);
     
     const buyDepth = buyResponse.data.depth || [];
     const buyDebug = buyResponse.data.debug || {};
     console.log(`✅ BUY completed in ${buyDuration}s`);
     console.log(`   Collected ${buyDepth.length} data points\n`);
+    
+    // Debug: Show full response structure
+    console.log('🔍 DEBUG: Full response structure:');
+    console.log(`   Has debug: ${!!buyResponse.data.debug}`);
+    console.log(`   Debug logs length: ${buyDebug.logs?.length || 0}`);
+    console.log(`   Debug errors length: ${buyDebug.errors?.length || 0}`);
+    if (buyResponse.data.debug) {
+      console.log(`   Debug keys: ${Object.keys(buyResponse.data.debug).join(', ')}`);
+    }
+    console.log('');
     
     // Show server logs if available
     if (buyDebug.logs && buyDebug.logs.length > 0) {
