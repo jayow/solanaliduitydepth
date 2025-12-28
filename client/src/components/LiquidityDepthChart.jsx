@@ -12,6 +12,7 @@ import './LiquidityDepthChart.css';
 
 function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
   const [maxDisplayCap, setMaxDisplayCap] = useState(15); // Default 15% cap
+  const [capInputValue, setCapInputValue] = useState('15'); // Local state for input field
   // Format currency with K/M/B suffixes
   const formatCurrency = (amount) => {
     if (amount === undefined || amount === null || isNaN(amount)) return 'N/A';
@@ -274,12 +275,37 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             min="1"
             max="1000"
             step="1"
-            value={maxDisplayCap}
+            value={capInputValue}
             onChange={(e) => {
-              const value = parseInt(e.target.value, 10);
+              const inputValue = e.target.value;
+              // Update local state immediately to allow typing
+              setCapInputValue(inputValue);
+              
+              // Only update the actual cap if it's a valid number
+              const value = parseInt(inputValue, 10);
               if (!isNaN(value) && value > 0 && value <= 1000) {
                 setMaxDisplayCap(value);
               }
+            }}
+            onBlur={(e) => {
+              // On blur, validate and fix the value
+              const value = parseInt(e.target.value, 10);
+              if (isNaN(value) || value <= 0) {
+                // Reset to current cap if invalid
+                setCapInputValue(maxDisplayCap.toString());
+              } else if (value > 1000) {
+                // Cap at 1000 if too high
+                setCapInputValue('1000');
+                setMaxDisplayCap(1000);
+              } else {
+                // Ensure it matches the actual cap
+                setCapInputValue(value.toString());
+                setMaxDisplayCap(value);
+              }
+            }}
+            onFocus={(e) => {
+              // Select all text on focus for easy editing
+              e.target.select();
             }}
             style={{
               width: '60px',
