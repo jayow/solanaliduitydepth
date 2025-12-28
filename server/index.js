@@ -856,25 +856,47 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error';
       const statusCode = error.response?.status;
+      const fullErrorData = error.response?.data;
       
       // Log detailed error info
       if (statusCode === 429) {
-        console.error(`⚠️ Rate limited for ${formatUSD(usdAmount)} - exhausted all retries`);
+        const rateLimitMsg = `⚠️ Rate limited for ${formatUSD(usdAmount)} - exhausted all retries`;
+        console.error(rateLimitMsg);
+        logs.push(rateLimitMsg);
       } else if (statusCode >= 400) {
-        console.error(`❌ API error ${statusCode} for ${formatUSD(usdAmount)}: ${errorMsg}`);
+        const apiErrorMsg = `❌ API error ${statusCode} for ${formatUSD(usdAmount)}: ${errorMsg}`;
+        console.error(apiErrorMsg);
+        logs.push(apiErrorMsg);
+        
         // For large amounts, log more details
         if (usdAmount >= 10000000) {
-          console.error(`   ⚠️ CRITICAL: Large trade size failed. Error details:`, {
+          const errorDetails = {
             statusCode,
             error: errorMsg,
+            fullError: fullErrorData ? JSON.stringify(fullErrorData) : 'N/A',
             inputMint: quoteInputMint ? quoteInputMint.slice(0, 8) : inputMint?.slice(0, 8),
             outputMint: quoteOutputMint ? quoteOutputMint.slice(0, 8) : outputMint?.slice(0, 8),
             rawAmount: rawAmount ? rawAmount.toLocaleString() : 'N/A',
             tokenAmount: rawAmount ? (rawAmount / Math.pow(10, quoteInputDecimals)).toFixed(2) : 'N/A'
-          });
+          };
+          const criticalMsg = `   ⚠️ CRITICAL: Large trade size failed. Error details: ${JSON.stringify(errorDetails, null, 2)}`;
+          console.error(criticalMsg);
+          logs.push(criticalMsg);
+          
+          // Check if it's a liquidity/routing issue
+          if (errorMsg?.toLowerCase().includes('route') || 
+              errorMsg?.toLowerCase().includes('liquidity') ||
+              errorMsg?.toLowerCase().includes('insufficient') ||
+              statusCode === 400) {
+            const liquidityMsg = `   💡 Likely cause: Insufficient liquidity on Jupiter for ${formatUSD(usdAmount)} trade size`;
+            console.warn(liquidityMsg);
+            logs.push(liquidityMsg);
+          }
         }
       } else {
-        console.error(`❌ Failed to get quote for ${formatUSD(usdAmount)}: ${errorMsg}`);
+        const failMsg = `❌ Failed to get quote for ${formatUSD(usdAmount)}: ${errorMsg}`;
+        console.error(failMsg);
+        logs.push(failMsg);
       }
       // Continue to next amount - don't fail the entire request
       // Note: We skip this amount but will try the next one
