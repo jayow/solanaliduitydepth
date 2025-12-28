@@ -1,8 +1,6 @@
 .app {
   min-height: 100vh;
   padding: 2rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
 }
 
 .app-header {
@@ -10,19 +8,16 @@
   color: #E6EAF0;
   margin-bottom: 1.5rem;
   padding: 1rem 0 0.5rem 0;
-  margin-left: 0;
-  padding-left: 0;
   position: relative;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .app-header h1,
 .app-header p,
 .app-header .app-credit {
   margin-left: 0;
-  padding-left: 0;
+  padding-left: 20px;
   text-align: left;
+  position: relative;
 }
 
 .app-header h1 {
@@ -60,12 +55,8 @@
 
 .app-main {
   max-width: 1400px;
-  margin-left: 0;
-  margin-right: auto;
+  margin: 0 auto;
   padding-left: 0;
-  padding-right: 0;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .token-count-info {
