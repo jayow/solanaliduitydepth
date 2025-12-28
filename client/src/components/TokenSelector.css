@@ -13,28 +13,22 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
-.swap-panel {
+.token-selector-button {
   background: #0F1620;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
-  padding: 1.25rem;
-}
-
-.token-selector-button {
-  background: #1A2433;
-  border: none;
-  border-radius: 999px;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: all 150ms ease-out;
-  min-height: 48px;
+  min-height: 64px;
 }
 
 .token-selector-button:hover {
   border-color: rgba(255, 255, 255, 0.1);
+  background: #121923;
 }
 
 .selected-token {
