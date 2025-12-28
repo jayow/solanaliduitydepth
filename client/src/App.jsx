@@ -239,7 +239,28 @@ function App() {
           <>
             {!loading && inputToken && outputToken ? (
               <div className="main-content-layout">
-                <div className="swap-card">
+                <div className="sidebar-container">
+                  <div className="swap-card">
+                    <div className="token-selector-container">
+                      <TokenSelector
+                        label="Input Token"
+                        tokens={tokens}
+                        selectedToken={inputToken}
+                        onSelect={setInputToken}
+                      />
+                      
+                      <button className="swap-button" onClick={swapTokens}>
+                        ⇅
+                      </button>
+
+                      <TokenSelector
+                        label="Output Token"
+                        tokens={tokens}
+                        selectedToken={outputToken}
+                        onSelect={setOutputToken}
+                      />
+                    </div>
+                  </div>
                   {tokens.length > 0 && (
                     <div className="token-count-info">
                       <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>
@@ -252,25 +273,6 @@ function App() {
                       </button>
                     </div>
                   )}
-                  <div className="token-selector-container">
-                    <TokenSelector
-                      label="Input Token"
-                      tokens={tokens}
-                      selectedToken={inputToken}
-                      onSelect={setInputToken}
-                    />
-                    
-                    <button className="swap-button" onClick={swapTokens}>
-                      ⇅
-                    </button>
-
-                    <TokenSelector
-                      label="Output Token"
-                      tokens={tokens}
-                      selectedToken={outputToken}
-                      onSelect={setOutputToken}
-                    />
-                  </div>
                 </div>
 
                 <div className="liquidity-view-container">
@@ -307,7 +309,28 @@ function App() {
                 </div>
               </div>
             ) : (
-              <div className="swap-card">
+              <div className="sidebar-container">
+                <div className="swap-card">
+                  <div className="token-selector-container">
+                    <TokenSelector
+                      label="Input Token"
+                      tokens={tokens}
+                      selectedToken={inputToken}
+                      onSelect={setInputToken}
+                    />
+                    
+                    <button className="swap-button" onClick={swapTokens}>
+                      ⇅
+                    </button>
+
+                    <TokenSelector
+                      label="Output Token"
+                      tokens={tokens}
+                      selectedToken={outputToken}
+                      onSelect={setOutputToken}
+                    />
+                  </div>
+                </div>
                 {tokens.length > 0 && (
                   <div className="token-count-info">
                     <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>
@@ -320,25 +343,6 @@ function App() {
                     </button>
                   </div>
                 )}
-                <div className="token-selector-container">
-                  <TokenSelector
-                    label="Input Token"
-                    tokens={tokens}
-                    selectedToken={inputToken}
-                    onSelect={setInputToken}
-                  />
-                  
-                  <button className="swap-button" onClick={swapTokens}>
-                    ⇅
-                  </button>
-
-                  <TokenSelector
-                    label="Output Token"
-                    tokens={tokens}
-                    selectedToken={outputToken}
-                    onSelect={setOutputToken}
-                  />
-                </div>
               </div>
             )}
           </>

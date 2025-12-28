@@ -82,15 +82,35 @@
   flex-wrap: wrap;
 }
 
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 0 0 auto;
+  min-width: 320px;
+  max-width: 400px;
+}
+
 .swap-card {
   background: #121923;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-  flex: 0 0 auto;
-  min-width: 320px;
-  max-width: 400px;
+  width: 100%;
+}
+
+.token-count-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #9AA4B2;
+  font-size: 0.9rem;
+  padding: 0.75rem 1rem;
+  background: #0F1620;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  width: 100%;
 }
 
 @media (min-width: 1200px) {
@@ -98,7 +118,7 @@
     flex-wrap: nowrap;
   }
   
-  .swap-card {
+  .sidebar-container {
     flex: 0 0 380px;
   }
   
