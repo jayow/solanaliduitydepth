@@ -104,6 +104,11 @@ function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = fa
     onSelect(token);
     setIsOpen(false);
     setSearchTerm('');
+    // Keep the panel selected after selection
+    if (onFocusChange) {
+      const panelType = label.toLowerCase().includes('input') ? 'input' : 'output';
+      onFocusChange(panelType);
+    }
   };
 
   return (
