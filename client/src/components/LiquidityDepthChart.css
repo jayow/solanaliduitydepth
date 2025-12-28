@@ -70,7 +70,7 @@
   z-index: 2;
 }
 
-.chart-area > :first-child {
+.chart-area > :first-of-type {
   position: relative;
   z-index: 1;
   flex: 1;
