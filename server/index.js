@@ -676,8 +676,33 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       
       // Convert to raw amount (smallest unit)
       rawAmount = Math.floor(tokenAmount * Math.pow(10, quoteInputDecimals));
+      
+      // Check for safe integer limits (JavaScript's MAX_SAFE_INTEGER)
+      if (rawAmount > Number.MAX_SAFE_INTEGER) {
+        const errorMsg = `Raw amount exceeds MAX_SAFE_INTEGER: ${rawAmount.toLocaleString()} > ${Number.MAX_SAFE_INTEGER.toLocaleString()}`;
+        console.error(`❌ ${errorMsg} for ${formatUSD(usdAmount)}`);
+        logs.push(`❌ ${errorMsg}`);
+        errors.push({
+          tradeSize: usdAmount,
+          tradeSizeFormatted: formatUSD(usdAmount),
+          error: errorMsg,
+          statusCode: null,
+          timestamp: new Date().toISOString()
+        });
+        continue;
+      }
+      
       if (rawAmount <= 0) {
-        console.warn(`⚠️ Skipping ${formatUSD(usdAmount)} - calculated token amount too small: ${formatAmount(tokenAmount)}`);
+        const errorMsg = `Calculated token amount too small: ${formatAmount(tokenAmount)}`;
+        console.warn(`⚠️ Skipping ${formatUSD(usdAmount)} - ${errorMsg}`);
+        logs.push(`⚠️ Skipping ${formatUSD(usdAmount)} - ${errorMsg}`);
+        errors.push({
+          tradeSize: usdAmount,
+          tradeSizeFormatted: formatUSD(usdAmount),
+          error: errorMsg,
+          statusCode: null,
+          timestamp: new Date().toISOString()
+        });
         continue;
       }
       
