@@ -682,7 +682,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       }
       
       // Use more retries for large amounts to handle transient errors
-      const retryCount = usdAmount >= 10000000 ? 3 : 2; // 3 retries for $10M+, 2 for smaller
+      // Increase retries significantly for $50M+ to ensure we get these critical data points
+      const retryCount = usdAmount >= 50000000 ? 5 : (usdAmount >= 10000000 ? 4 : 2);
+      console.log(`🔄 Attempting ${formatUSD(usdAmount)} with ${retryCount} retries...`);
       const quote = await getQuote(quoteInputMint, quoteOutputMint, rawAmount, 50, retryCount);
 
       if (quote?.outAmount && quote?.inAmount) {
