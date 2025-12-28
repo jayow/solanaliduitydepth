@@ -706,7 +706,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         continue;
       }
       
-      console.log(`   💰 Converting: ${formatUSD(usdAmount)} = ${formatAmount(tokenAmount)} tokens (raw: ${rawAmount.toLocaleString()})`);
+      const convertMsg = `   💰 Converting: ${formatUSD(usdAmount)} = ${formatAmount(tokenAmount)} tokens (raw: ${rawAmount.toLocaleString()})`;
+      console.log(convertMsg);
+      logs.push(convertMsg);
       
       // Check timeout before proceeding (but allow a bit of buffer for the actual request)
       const elapsed = Date.now() - calculationStartTime;
