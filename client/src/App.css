@@ -46,6 +46,9 @@
   color: #7F8A9A;
   margin-top: 1rem;
   font-weight: 400;
+  width: 100%;
+  padding-left: 120px;
+  flex-basis: 100%;
 }
 
 .credit-link {
