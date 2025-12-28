@@ -35,7 +35,13 @@ app.use(express.json());
 
 // Jupiter API configuration
 // Using paid API with API key for higher rate limits
-const JUPITER_API_KEY = process.env.JUPITER_API_KEY || '312153e6-442b-497f-bdc1-b5f900ab42a0';
+// API key must be set via JUPITER_API_KEY environment variable
+const JUPITER_API_KEY = process.env.JUPITER_API_KEY;
+
+if (!JUPITER_API_KEY) {
+  console.warn('⚠️ WARNING: JUPITER_API_KEY environment variable not set. API requests may be rate limited.');
+  console.warn('   Set JUPITER_API_KEY in your .env file or environment variables.');
+}
 const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
 const JUPITER_TOKEN_URL = 'https://api.jup.ag/tokens/v1/all';
 
@@ -81,8 +87,8 @@ async function getTokenList() {
         'User-Agent': 'Solana-Liquidity-Depth/1.0'
       };
       
-      // Add API key for Jupiter endpoints
-      if (endpoint.includes('jup.ag') || endpoint.includes('api.jup.ag')) {
+      // Add API key for Jupiter endpoints (if available)
+      if ((endpoint.includes('jup.ag') || endpoint.includes('api.jup.ag')) && JUPITER_API_KEY) {
         headers['x-api-key'] = JUPITER_API_KEY;
       }
       
@@ -371,7 +377,7 @@ async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries
         },
         headers: {
           'Accept': 'application/json',
-          'x-api-key': JUPITER_API_KEY,
+          ...(JUPITER_API_KEY && { 'x-api-key': JUPITER_API_KEY }),
         }
       });
       
@@ -480,56 +486,126 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   let baselinePrice = null;
   const baselineAmounts = [100, 50, 10]; // Try progressively smaller amounts if rate limited
   
-  for (const smallUsdAmount of baselineAmounts) {
+  // For sell orders, try to get a reverse quote first to estimate price
+  if (!isBuy) {
     try {
-      console.log(`Getting baseline price from small $${smallUsdAmount} trade...`);
+      console.log(`Getting initial price estimate for sell order (reverse quote)...`);
+      // Try buying a small amount in reverse direction to get price estimate
+      // This helps us estimate how much token we need to sell for $100
+      const reverseInputMint = outputMint; // USDC
+      const reverseOutputMint = inputMint; // SOL
+      const smallReverseAmount = Math.floor(100 * Math.pow(10, outputDecimals)); // $100 in USDC
       
-      // For baseline, we always use the "selling" token side
-      // If buying: we're selling USDC to buy SOL, so use USDC amount directly
-      // If selling: we're selling SOL to get USDC, so we need to estimate SOL amount
-      let smallTokenAmount;
-      if (isBuy) {
-        // Buying: spending USDC, so USD = USDC amount
-        smallTokenAmount = smallUsdAmount;
-      } else {
-        // Selling: need to estimate token amount for $100
-        // We'll use a conservative estimate first, then refine with actual price
-        smallTokenAmount = smallUsdAmount / 100; // Assume $100 per token initially
-      }
+      const reverseQuote = await getQuote(reverseInputMint, reverseOutputMint, smallReverseAmount, 50, 1);
       
-      // Convert to raw amount
-      const smallRawAmount = Math.floor(smallTokenAmount * Math.pow(10, quoteInputDecimals));
-      if (smallRawAmount <= 0) continue;
-      
-      const quoteInputMint = isBuy ? outputMint : inputMint;
-      const quoteOutputMint = isBuy ? inputMint : outputMint;
-      
-      const baselineQuote = await getQuote(quoteInputMint, quoteOutputMint, smallRawAmount, 50, 2); // Only 2 retries for baseline
-      
-      if (baselineQuote?.outAmount && baselineQuote?.inAmount) {
-        const baselineInputRaw = isBuy ? baselineQuote.outAmount : baselineQuote.inAmount;
-        const baselineOutputRaw = isBuy ? baselineQuote.inAmount : baselineQuote.outAmount;
+      if (reverseQuote?.outAmount && reverseQuote?.inAmount) {
+        const reverseInputReadable = parseFloat(reverseQuote.inAmount) / Math.pow(10, outputDecimals);
+        const reverseOutputReadable = parseFloat(reverseQuote.outAmount) / Math.pow(10, inputDecimals);
         
-        const baselineInputReadable = parseFloat(baselineInputRaw) / Math.pow(10, inputDecimals);
-        const baselineOutputReadable = parseFloat(baselineOutputRaw) / Math.pow(10, outputDecimals);
+        // Price = USDC per token (e.g., 123 USDC per SOL)
+        const estimatedPrice = reverseInputReadable / reverseOutputReadable;
         
-        // Price = output per input (e.g., USDC per SOL)
-        baselinePrice = baselineOutputReadable / baselineInputReadable;
-        console.log(`✅ Baseline price: ${baselinePrice.toFixed(6)} ${outputToken?.symbol || 'output'}/${inputToken?.symbol || 'input'}`);
-        break; // Success, exit loop
+        if (estimatedPrice > 0 && isFinite(estimatedPrice) && estimatedPrice < 1e10) {
+          console.log(`✅ Got price estimate from reverse quote: ${estimatedPrice.toFixed(6)}`);
+          // Use this estimate for baseline calculation
+          baselinePrice = estimatedPrice;
+        }
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
-      const statusCode = error.response?.status;
-      
-      if (statusCode === 429) {
-        console.warn(`⚠️ Rate limited getting baseline ($${smallUsdAmount}), trying smaller amount...`);
-        // Continue to next smaller amount
-        continue;
-      } else {
-        console.warn(`⚠️ Failed to get baseline price for $${smallUsdAmount}:`, errorMsg);
-        // Try next amount
-        continue;
+      console.log(`⚠️ Could not get reverse quote for price estimate, will try direct method...`);
+    }
+  }
+  
+  // Get baseline price from small trades (if not already obtained from reverse quote)
+  if (!baselinePrice) {
+    for (const smallUsdAmount of baselineAmounts) {
+      try {
+        console.log(`Getting baseline price from small $${smallUsdAmount} trade...`);
+        
+        // For baseline, we always use the "selling" token side
+        // If buying: we're selling USDC to buy SOL, so use USDC amount directly
+        // If selling: we're selling SOL to get USDC, so we need to estimate SOL amount
+        let smallTokenAmount;
+        if (isBuy) {
+          // Buying: spending USDC, so USD = USDC amount
+          smallTokenAmount = smallUsdAmount;
+        } else {
+          // Selling: use estimated price from reverse quote if available, otherwise use conservative estimate
+          if (baselinePrice && baselinePrice > 0) {
+            // Use the estimated price from reverse quote
+            smallTokenAmount = smallUsdAmount / baselinePrice;
+            console.log(`Using reverse quote price estimate (${baselinePrice.toFixed(6)}) to calculate token amount: ${formatAmount(smallTokenAmount)}`);
+          } else {
+            // Fallback: try a few reasonable token amounts and use the first successful one
+            // This is more efficient than trying multiple price assumptions
+            const testTokenAmounts = [
+              smallUsdAmount / 100,   // $100/token (high value tokens)
+              smallUsdAmount / 10,    // $10/token (mid value)
+              smallUsdAmount / 1,     // $1/token (low value)
+              smallUsdAmount / 0.1,   // $0.1/token (very low value)
+            ];
+            
+            let foundValidAmount = false;
+            for (const testAmount of testTokenAmounts) {
+              const testRawAmount = Math.floor(testAmount * Math.pow(10, quoteInputDecimals));
+              if (testRawAmount > 0) {
+                smallTokenAmount = testAmount;
+                foundValidAmount = true;
+                console.log(`Trying token amount estimate: ${formatAmount(testAmount)} (${formatUSD(smallUsdAmount / testAmount)}/token assumption)`);
+                break;
+              }
+            }
+            
+            if (!foundValidAmount) {
+              // Last resort: use $100/token assumption
+              smallTokenAmount = smallUsdAmount / 100;
+              console.log(`Using fallback estimate: $100/token`);
+            }
+          }
+        }
+        
+        // Convert to raw amount
+        const smallRawAmount = Math.floor(smallTokenAmount * Math.pow(10, quoteInputDecimals));
+        if (smallRawAmount <= 0) continue;
+        
+        const quoteInputMint = isBuy ? outputMint : inputMint;
+        const quoteOutputMint = isBuy ? inputMint : outputMint;
+        
+        const baselineQuote = await getQuote(quoteInputMint, quoteOutputMint, smallRawAmount, 50, 2); // Only 2 retries for baseline
+        
+        if (baselineQuote?.outAmount && baselineQuote?.inAmount) {
+          const baselineInputRaw = isBuy ? baselineQuote.outAmount : baselineQuote.inAmount;
+          const baselineOutputRaw = isBuy ? baselineQuote.inAmount : baselineQuote.outAmount;
+          
+          const baselineInputReadable = parseFloat(baselineInputRaw) / Math.pow(10, inputDecimals);
+          const baselineOutputReadable = parseFloat(baselineOutputRaw) / Math.pow(10, outputDecimals);
+          
+          // Price = output per input (e.g., USDC per SOL)
+          const calculatedPrice = baselineOutputReadable / baselineInputReadable;
+          
+          // Validate price before using
+          if (calculatedPrice > 0 && isFinite(calculatedPrice) && calculatedPrice < 1e10) {
+            baselinePrice = calculatedPrice;
+            console.log(`✅ Baseline price: ${baselinePrice.toFixed(6)} ${outputToken?.symbol || 'output'}/${inputToken?.symbol || 'input'}`);
+            break; // Success, exit loop
+          } else {
+            console.warn(`⚠️ Invalid baseline price calculated: ${calculatedPrice}, trying next amount...`);
+            continue;
+          }
+        }
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+        const statusCode = error.response?.status;
+        
+        if (statusCode === 429) {
+          console.warn(`⚠️ Rate limited getting baseline ($${smallUsdAmount}), trying smaller amount...`);
+          // Continue to next smaller amount
+          continue;
+        } else {
+          console.warn(`⚠️ Failed to get baseline price for $${smallUsdAmount}:`, errorMsg);
+          // Try next amount
+          continue;
+        }
       }
     }
   }
@@ -615,10 +691,22 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         const inputAmountReadable = parseFloat(inputAmountRaw) / Math.pow(10, inputDecimals);
         const outputAmountReadable = parseFloat(outputAmountRaw) / Math.pow(10, outputDecimals);
         
+        // Validate amounts before calculating price
+        if (!isFinite(inputAmountReadable) || inputAmountReadable <= 0) {
+          console.warn(`⚠️ Invalid input amount for ${formatUSD(usdAmount)}: ${inputAmountReadable}`);
+          continue;
+        }
+        
+        if (!isFinite(outputAmountReadable) || outputAmountReadable <= 0) {
+          console.warn(`⚠️ Invalid output amount for ${formatUSD(usdAmount)}: ${outputAmountReadable}`);
+          continue;
+        }
+        
         // Price = output per input
         const price = outputAmountReadable / inputAmountReadable;
         
-        if (!isFinite(price) || price <= 0) {
+        // Comprehensive price validation
+        if (!isFinite(price) || price <= 0 || price > 1e10) {
           console.warn(`⚠️ Invalid price for ${formatUSD(usdAmount)}: ${price}`);
           continue;
         }
@@ -636,6 +724,19 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         const slippage = referencePrice > 0 
           ? Math.abs((price - referencePrice) / referencePrice) * 100 
           : 0;
+        
+        // Validate slippage is reasonable (warn if extreme, but don't skip)
+        if (slippage > 1000) {
+          console.warn(`⚠️ Extreme slippage detected: ${slippage.toFixed(2)}% for ${formatUSD(usdAmount)}`);
+        }
+        
+        // Validate that amounts are monotonically increasing (for cumulative calculation)
+        if (depthPoints.length > 0) {
+          const lastPoint = depthPoints[depthPoints.length - 1];
+          if (inputAmountReadable < lastPoint.amount * 0.9) {
+            console.warn(`⚠️ Trade amount decreased: ${formatAmount(inputAmountReadable)} < ${formatAmount(lastPoint.amount)} for ${formatUSD(usdAmount)}`);
+          }
+        }
 
         // Store the fixed USD trade size we tested
         // This is the target USD value we wanted to test (e.g., $1000)
@@ -645,7 +746,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         depthPoints.push({
           price,
           amount: inputAmountReadable, // Token amount we actually traded (calculated from USD)
-          cumulativeLiquidity: inputAmountReadable,
+          // cumulativeLiquidity will be calculated after all points are collected
           outputAmount: outputAmountReadable, // Token amount we received
           priceImpact: slippage, // Keep priceImpact for backward compatibility
           slippage, // Slippage percentage from baseline price
@@ -688,10 +789,46 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   const endTime = Date.now();
   const totalTime = (endTime - calculationStartTime) / 1000;
   
+  // Calculate cumulative liquidity (sum of all previous trades + current)
+  // Sort by trade size to ensure proper cumulative calculation
+  depthPoints.sort((a, b) => a.tradeUsdValue - b.tradeUsdValue);
+  
+  let cumulativeAmount = 0;
+  let cumulativeOutputAmount = 0;
+  
+  depthPoints.forEach((point, index) => {
+    // Validate data before adding to cumulative
+    if (point.amount > 0 && point.price > 0 && isFinite(point.price) && isFinite(point.amount)) {
+      cumulativeAmount += point.amount;
+      cumulativeOutputAmount += point.outputAmount;
+      
+      point.cumulativeLiquidity = cumulativeAmount;
+      point.cumulativeOutputLiquidity = cumulativeOutputAmount;
+    } else {
+      // If invalid, use previous cumulative value
+      point.cumulativeLiquidity = index > 0 ? depthPoints[index - 1].cumulativeLiquidity : 0;
+      point.cumulativeOutputLiquidity = index > 0 ? depthPoints[index - 1].cumulativeOutputLiquidity : 0;
+      console.warn(`⚠️ Invalid data point at index ${index}, using previous cumulative value`);
+    }
+    
+    // Additional validation: check for extreme values
+    if (point.slippage > 1000) {
+      console.warn(`⚠️ Extreme slippage detected: ${point.slippage.toFixed(2)}% for ${formatUSD(point.tradeUsdValue)}`);
+    }
+    
+    if (point.price <= 0 || !isFinite(point.price) || point.price > 1e10) {
+      console.warn(`⚠️ Invalid price detected: ${point.price} for ${formatUSD(point.tradeUsdValue)}`);
+    }
+  });
+  
   if (totalTime >= MAX_CALCULATION_TIME / 1000) {
     console.warn(`⏱️ Calculation reached time limit (${(MAX_CALCULATION_TIME / 1000).toFixed(0)}s). Returning ${depthPoints.length} points collected.`);
   } else {
     console.log(`\n✅ Liquidity depth calculation finished in ${totalTime.toFixed(2)} seconds. Collected ${depthPoints.length} points.`);
+    if (depthPoints.length > 0) {
+      const maxCumulative = depthPoints[depthPoints.length - 1].cumulativeLiquidity;
+      console.log(`📊 Maximum cumulative liquidity: ${formatAmount(maxCumulative)} tokens`);
+    }
   }
   
   return depthPoints;
