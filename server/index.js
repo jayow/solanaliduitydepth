@@ -215,6 +215,7 @@ async function getTokenList() {
     // This may result in limited liquidity/routing compared to officially listed tokens
     const importantAddresses = [
       '6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG', // USX (NOT in Jupiter official list - force-added)
+      'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN', // JUP (Jupiter token - ensure it's included)
       'So11111111111111111111111111111111111111112', // SOL
       'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
     ];
