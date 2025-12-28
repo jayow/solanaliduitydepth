@@ -2,6 +2,12 @@
   position: relative;
   min-width: 280px;
   flex: 1;
+  margin-bottom: 18px;
+}
+
+.token-selector:last-of-type {
+  margin-bottom: 0;
+  margin-top: 18px;
 }
 
 .token-selector-label {
