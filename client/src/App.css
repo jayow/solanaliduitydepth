@@ -21,6 +21,25 @@
   color: #9AA4B2;
 }
 
+.app-credit {
+  font-size: 0.875rem;
+  color: #7F8A9A;
+  margin-top: 1rem;
+  font-weight: 400;
+}
+
+.credit-link {
+  color: #9AA4B2;
+  text-decoration: none;
+  transition: all 150ms ease-out;
+  font-weight: 500;
+}
+
+.credit-link:hover {
+  color: #E6EAF0;
+  text-decoration: underline;
+}
+
 .app-main {
   max-width: 1400px;
   margin: 0 auto;

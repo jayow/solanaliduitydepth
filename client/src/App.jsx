@@ -216,6 +216,17 @@ function App() {
       <header className="app-header">
         <h1>Solana Liquidity Depth</h1>
         <p>Visualize liquidity depth using Jupiter aggregator</p>
+        <p className="app-credit">
+          Made with ❤️ by{' '}
+          <a 
+            href="https://twitter.com/jayowtrades" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="credit-link"
+          >
+            @jayowtrades
+          </a>
+        </p>
       </header>
 
       <main className="app-main">
