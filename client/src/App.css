@@ -102,6 +102,8 @@
   min-width: 320px;
   max-width: 400px;
   margin-top: 4.5rem;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .swap-card {
