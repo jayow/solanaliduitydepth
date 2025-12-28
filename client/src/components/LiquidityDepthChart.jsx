@@ -304,10 +304,6 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       </div>
 
       <div className="chart-area">
-        <div className="axis-label-overlay">
-          <div className="y-axis-label">Price Impact (%)</div>
-          <div className="x-axis-label">Trade Size (USD)</div>
-        </div>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
@@ -394,6 +390,10 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             />
           </LineChart>
         </ResponsiveContainer>
+        <div className="axis-label-overlay">
+          <div className="y-axis-label">Price Impact (%)</div>
+          <div className="x-axis-label">Trade Size (USD)</div>
+        </div>
       </div>
     </div>
   );
