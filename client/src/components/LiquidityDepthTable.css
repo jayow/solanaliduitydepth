@@ -41,55 +41,73 @@
 
 .liquidity-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: #121923;
   table-layout: fixed;
 }
 
 .liquidity-table th,
 .liquidity-table td {
-  width: auto;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .liquidity-table th:first-child,
 .liquidity-table td:first-child {
-  width: 10%;
+  width: 11%;
+  padding-left: 0.75rem;
+  padding-right: 0.5rem;
 }
 
 .liquidity-table th:nth-child(2),
 .liquidity-table td:nth-child(2) {
-  width: 12%;
+  width: 13%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .liquidity-table th:nth-child(3),
 .liquidity-table td:nth-child(3) {
-  width: 8%;
+  width: 7%;
+  padding-left: 0.5rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(4),
 .liquidity-table td:nth-child(4) {
-  width: 12%;
+  width: 13%;
+  padding-left: 0.75rem;
+  padding-right: 0.5rem;
 }
 
 .liquidity-table th:nth-child(5),
 .liquidity-table td:nth-child(5) {
-  width: 8%;
+  width: 7%;
+  padding-left: 0.5rem;
+  padding-right: 0.75rem;
 }
 
 .liquidity-table th:nth-child(6),
 .liquidity-table td:nth-child(6) {
-  width: 10%;
+  width: 11%;
+  padding-left: 0.75rem;
+  padding-right: 0.5rem;
 }
 
 .liquidity-table th:nth-child(7),
 .liquidity-table td:nth-child(7) {
-  width: 20%;
+  width: 18%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .liquidity-table th:last-child,
 .liquidity-table td:last-child {
   width: 20%;
+  padding-left: 0.5rem;
+  padding-right: 0.75rem;
   text-align: center;
 }
 
@@ -97,41 +115,58 @@
   font-weight: 600;
   color: #FFFFFF;
   font-size: 0.85rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trade-amount .token-amount {
   font-weight: 500;
   color: #E6EAF0;
   font-size: 0.85rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trade-token .token-symbol {
   color: #9AA4B2;
   font-size: 0.8rem;
   font-weight: 500;
+  display: block;
 }
 
 .receive-amount .token-amount {
   font-weight: 500;
   color: #22C55E;
   font-size: 0.85rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .receive-token .token-symbol {
   color: #9AA4B2;
   font-size: 0.8rem;
   font-weight: 500;
+  display: block;
 }
 
 .receive-usd .usd-value {
   color: #9AA4B2;
   font-size: 0.8rem;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .price-cell .price-value {
   color: #9AA4B2;
   font-size: 0.8rem;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .price-impact-cell {
