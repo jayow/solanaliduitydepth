@@ -2,9 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
@@ -323,66 +320,37 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-          <XAxis
-            dataKey="tradeUsdValue"
-            type="number"
-            scale="log"
-            domain={[minTradeValue, maxTradeValue]}
-            tickFormatter={(value) => {
-              if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(0)}B`;
-              if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
-              if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-              return `$${value.toFixed(0)}`;
-            }}
-            label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: -5 }}
-            stroke="#666"
-          />
-          <YAxis
-            domain={(dataMin, dataMax) => [0, maxDisplayCap]}
-            type="number"
-            allowDataOverflow={true}
-            padding={{ top: 0, bottom: 0 }}
-            label={{ value: 'Price Impact', angle: -90, position: 'insideLeft' }}
-            stroke="#666"
-            tickFormatter={(value) => {
-              // Only show ticks up to the cap
-              if (value > maxDisplayCap) return '';
-              return `${value}%`;
-            }}
-          />
-          <Tooltip 
-            content={<CustomTooltip />}
-            cursor={{ stroke: '#10b981', strokeWidth: 2, strokeDasharray: '5 5' }}
-            allowEscapeViewBox={{ x: false, y: false }}
-            shared={false}
-            trigger="hover"
-            animationDuration={0}
-          />
-          <Line
-            type="monotone"
-            dataKey="priceImpact"
-            stroke="#10b981"
-            strokeWidth={3}
-            dot={false}
-            activeDot={{ 
-              r: 6, 
-              fill: '#10b981',
-              stroke: '#fff',
-              strokeWidth: 2,
-              style: { filter: 'drop-shadow(0 0 4px rgba(16, 185, 129, 0.6))' }
-            }}
-            isAnimationActive={true}
-            animationDuration={300}
-            connectNulls={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="chart-area">
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+          >
+            <Tooltip 
+              content={<CustomTooltip />}
+              cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }}
+              allowEscapeViewBox={{ x: false, y: false }}
+              shared={false}
+              trigger="hover"
+              animationDuration={0}
+            />
+            <Line
+              type="monotone"
+              dataKey="priceImpact"
+              stroke="#3EE6B7"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              dot={false}
+              activeDot={false}
+              isAnimationActive={true}
+              animationDuration={400}
+              animationEasing="ease-out"
+              connectNulls={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
