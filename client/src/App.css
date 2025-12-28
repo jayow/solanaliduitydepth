@@ -167,8 +167,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem;
+  padding: 1.5rem;
   color: #E6EAF0;
+  background: #0F1620;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  width: 100%;
+  text-align: center;
+}
+
+.loading p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #E6EAF0;
+}
+
+.loading-subtext {
+  font-size: 0.8rem !important;
+  color: #9AA4B2 !important;
+  margin-top: 0.75rem !important;
+  line-height: 1.4;
 }
 
 .spinner {

@@ -237,7 +237,7 @@ function App() {
           </div>
         ) : (
           <>
-            {!loading && inputToken && outputToken ? (
+            {inputToken && outputToken ? (
               <div className="main-content-layout">
                 <div className="sidebar-container">
                   <div className="swap-card">
@@ -273,7 +273,16 @@ function App() {
                       </button>
                     </div>
                   )}
-                  {statusMessage && (
+                  {loading && (
+                    <div className="loading">
+                      <div className="spinner"></div>
+                      <p>{statusMessage || 'Calculating liquidity depth...'}</p>
+                      <p className="loading-subtext">
+                        ⏱️ Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
+                      </p>
+                    </div>
+                  )}
+                  {!loading && statusMessage && (
                     <div className={`status-message ${
                       jupiterStatus === 'connected' ? 'status-success' : 
                       jupiterStatus === 'rate_limited' ? 'status-error rate-limited' :
@@ -292,14 +301,15 @@ function App() {
                       )}
                     </div>
                   )}
-                  {error && (
+                  {!loading && error && (
                     <div className="error-message">
                       {error}
                     </div>
                   )}
                 </div>
 
-                <div className="liquidity-view-container">
+                {!loading && (
+                  <div className="liquidity-view-container">
                   <div className="view-mode-selector">
                     <button 
                       className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
@@ -330,7 +340,8 @@ function App() {
                       outputToken={outputToken}
                     />
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="sidebar-container">
@@ -367,7 +378,16 @@ function App() {
                     </button>
                   </div>
                 )}
-                {statusMessage && (
+                {loading && (
+                  <div className="loading">
+                    <div className="spinner"></div>
+                    <p>{statusMessage || 'Calculating liquidity depth...'}</p>
+                    <p className="loading-subtext">
+                      ⏱️ Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
+                    </p>
+                  </div>
+                )}
+                {!loading && statusMessage && (
                   <div className={`status-message ${
                     jupiterStatus === 'connected' ? 'status-success' : 
                     jupiterStatus === 'rate_limited' ? 'status-error rate-limited' :
@@ -386,7 +406,7 @@ function App() {
                     )}
                   </div>
                 )}
-                {error && (
+                {!loading && error && (
                   <div className="error-message">
                     {error}
                   </div>
@@ -394,16 +414,6 @@ function App() {
               </div>
             )}
           </>
-        )}
-
-        {loading && (
-          <div className="loading">
-            <div className="spinner"></div>
-            <p>{statusMessage || 'Calculating liquidity depth...'}</p>
-            <p className="loading-subtext">
-              ⏱️ Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
-            </p>
-          </div>
         )}
       </main>
     </div>
