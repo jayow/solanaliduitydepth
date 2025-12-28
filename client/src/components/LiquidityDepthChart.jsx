@@ -107,11 +107,18 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         receiveAmount: point.outputAmount,
         price: point.price,
       };
-    }).filter(point => point.tradeUsdValue > 0 && point.priceImpact >= 0);
+    }).filter(point => 
+      point.tradeUsdValue > 0 && 
+      point.priceImpact >= 0 && 
+      point.priceImpact <= maxDisplayCap // Only show points within the cap
+    );
     
     // Densify the data to allow hovering at any point
-    return densifyData(baseData, 15); // 15 interpolated points between each pair
-  }, [buyDepth, sellDepth]);
+    const densified = densifyData(baseData, 15); // 15 interpolated points between each pair
+    
+    // Filter to ensure all points (including interpolated) are within the cap
+    return densified.filter(point => point.priceImpact <= maxDisplayCap);
+  }, [buyDepth, sellDepth, maxDisplayCap]);
 
   // Interpolate values between data points based on X position (tradeUsdValue)
   // Uses log-scale aware interpolation for better accuracy
@@ -222,22 +229,53 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     return null;
   };
 
+  // Check if we have data but it's all filtered out due to cap
+  const depthToUseForCheck = sellDepth && sellDepth.length > 0 ? sellDepth : buyDepth;
+  const hasDataButFiltered = depthToUseForCheck && depthToUseForCheck.length > 0 && chartData.length === 0;
+  
   if (!chartData.length) {
     return (
       <div className="no-data">
-        <p>No liquidity data available for this pair</p>
+        {hasDataButFiltered ? (
+          <>
+            <p>No data points within the {maxDisplayCap}% cap</p>
+            <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+              Try increasing the display cap to see data points with higher price impact
+            </p>
+          </>
+        ) : (
+          <p>No liquidity data available for this pair</p>
+        )}
       </div>
     );
   }
 
-  const maxPriceImpact = Math.max(...chartData.map(d => d.priceImpact || d.slippage || 0));
+  // Calculate max from displayed data (within cap)
+  const maxPriceImpactDisplayed = chartData.length > 0 
+    ? Math.max(...chartData.map(d => d.priceImpact || d.slippage || 0))
+    : 0;
+  
+  // Calculate actual max from all data (before filtering)
+  const depthToUse = sellDepth && sellDepth.length > 0 ? sellDepth : buyDepth;
+  const bestPrice = depthToUse?.[0]?.price || 0;
+  const actualMaxPriceImpact = depthToUse && bestPrice > 0
+    ? Math.max(...depthToUse.map(point => {
+        const priceImpact = point.priceImpact !== undefined 
+          ? point.priceImpact 
+          : (point.slippage !== undefined 
+            ? point.slippage 
+            : (bestPrice > 0 ? Math.abs((bestPrice - point.price) / bestPrice) * 100 : 0));
+        return priceImpact;
+      }))
+    : maxPriceImpactDisplayed;
+
   const maxTradeValue = Math.max(...chartData.map(d => d.tradeUsdValue || 0));
   const minTradeValue = Math.min(...chartData.map(d => d.tradeUsdValue || 0));
 
   // Calculate Y-axis domain using the user-defined cap
   // Cap the display at maxDisplayCap, but still show actual values in tooltips
-  const yAxisMax = Math.min(maxPriceImpact * 1.1, maxDisplayCap);
-  const hasExceededCap = maxPriceImpact > maxDisplayCap;
+  const yAxisMax = Math.min(maxPriceImpactDisplayed * 1.1, maxDisplayCap);
+  const hasExceededCap = actualMaxPriceImpact > maxDisplayCap;
 
   return (
     <div className="liquidity-chart-container">
@@ -245,10 +283,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <h2>Price Impact</h2>
         <div className="slippage-range">
           <span>Min <strong>0%</strong></span>
-          <span>Max <strong>{maxPriceImpact.toFixed(1)}%</strong></span>
+          <span>
+            Max <strong>{maxPriceImpactDisplayed.toFixed(1)}%</strong>
+            {hasExceededCap && (
+              <span style={{ color: '#ef4444', fontSize: '0.85rem', marginLeft: '0.25rem' }}>
+                (actual: {actualMaxPriceImpact.toFixed(1)}%)
+              </span>
+            )}
+          </span>
           {hasExceededCap && (
             <span style={{ color: '#ef4444', fontSize: '0.85rem', marginLeft: '0.5rem' }}>
-              ⚠️ Exceeds cap
+              ⚠️ Data exceeds cap
             </span>
           )}
         </div>
