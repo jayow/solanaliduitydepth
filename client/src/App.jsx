@@ -248,6 +248,8 @@ function App() {
                       tokens={tokens}
                       selectedToken={inputToken}
                       onSelect={setInputToken}
+                      isSelected={focusedPanel === 'input'}
+                      onFocusChange={setFocusedPanel}
                     />
                     
                     <div className="swap-button-wrapper">
@@ -261,6 +263,8 @@ function App() {
                       tokens={tokens}
                       selectedToken={outputToken}
                       onSelect={setOutputToken}
+                      isSelected={focusedPanel === 'output'}
+                      onFocusChange={setFocusedPanel}
                     />
                     </div>
                   </div>
@@ -355,6 +359,8 @@ function App() {
                       tokens={tokens}
                       selectedToken={inputToken}
                       onSelect={setInputToken}
+                      isSelected={focusedPanel === 'input'}
+                      onFocusChange={setFocusedPanel}
                     />
                     
                     <div className="swap-button-wrapper">
@@ -368,6 +374,8 @@ function App() {
                       tokens={tokens}
                       selectedToken={outputToken}
                       onSelect={setOutputToken}
+                      isSelected={focusedPanel === 'output'}
+                      onFocusChange={setFocusedPanel}
                     />
                   </div>
                 </div>
