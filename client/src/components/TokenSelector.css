@@ -2,28 +2,26 @@
   position: relative;
   min-width: 280px;
   flex: 1;
-  margin-bottom: 18px;
-}
-
-.token-selector:last-of-type {
-  margin-bottom: 0;
-  margin-top: 18px;
+  margin: 0;
 }
 
 .token-selector-label {
-  display: block;
+  position: absolute;
+  top: 14px;
+  left: 16px;
   color: #9AA4B2;
-  margin-bottom: 10px;
   font-weight: 500;
   font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .token-selector-button {
   background: #0F1620;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
-  padding: 16px;
+  padding: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -34,6 +32,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   box-shadow: none;
+  position: relative;
+  padding-top: 40px;
 }
 
 .token-selector-button:hover {
@@ -55,7 +55,7 @@
 
 .token-symbol {
   font-weight: 700;
-  font-size: 18px;
+  font-size: 20px;
   color: #E6EAF0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   letter-spacing: 0;

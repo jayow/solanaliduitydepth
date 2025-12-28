@@ -144,13 +144,12 @@
 }
 
 .swap-button-wrapper {
-  position: relative;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  margin: -14px 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  pointer-events: none;
 }
 
 .swap-button {
@@ -166,6 +165,7 @@
   border: none;
   padding: 0;
   background: transparent;
+  pointer-events: all;
 }
 
 .swap-button::before {
@@ -181,8 +181,9 @@
 
 .swap-button-inner {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 38px;
+  height: 38px;
+  margin: 3px;
   background: #1A2433;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 999px;
