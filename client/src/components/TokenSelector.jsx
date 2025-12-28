@@ -112,9 +112,11 @@ function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = fa
       <div 
         className={`token-selector-button ${isSelected ? 'selected' : ''}`} 
         onClick={() => {
-          setIsOpen(!isOpen);
+          const newIsOpen = !isOpen;
+          setIsOpen(newIsOpen);
           if (onFocusChange) {
-            onFocusChange(!isOpen ? label.toLowerCase().includes('input') ? 'input' : 'output' : null);
+            const panelType = label.toLowerCase().includes('input') ? 'input' : 'output';
+            onFocusChange(newIsOpen ? panelType : panelType); // Keep selected when opening dropdown
           }
         }}
         onFocus={() => {
