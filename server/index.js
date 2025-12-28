@@ -946,7 +946,12 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     }
   }
   
-  return depthPoints;
+  // Return both depth points and debug info
+  return {
+    depthPoints,
+    logs,
+    errors
+  };
 }
 
 // Routes
