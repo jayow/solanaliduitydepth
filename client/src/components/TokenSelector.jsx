@@ -109,16 +109,18 @@ function TokenSelector({ label, tokens, selectedToken, onSelect }) {
   return (
     <div className="token-selector" ref={dropdownRef}>
       <label className="token-selector-label">{label}</label>
-      <div className="token-selector-button" onClick={() => setIsOpen(!isOpen)}>
-        {selectedToken ? (
-          <div className="selected-token">
-            <span className="token-symbol">{selectedToken.symbol}</span>
-            <span className="token-name">{selectedToken.name}</span>
-          </div>
-        ) : (
-          <span className="placeholder">Select token</span>
-        )}
-        <span className="dropdown-arrow">▼</span>
+      <div className="swap-panel">
+        <div className="token-selector-button" onClick={() => setIsOpen(!isOpen)}>
+          {selectedToken ? (
+            <div className="selected-token">
+              <span className="token-symbol">{selectedToken.symbol}</span>
+              <span className="token-name">{selectedToken.name}</span>
+            </div>
+          ) : (
+            <span className="placeholder">Select token</span>
+          )}
+          <span className="dropdown-arrow">▼</span>
+        </div>
       </div>
 
       {isOpen && (

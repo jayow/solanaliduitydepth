@@ -238,24 +238,26 @@ function App() {
                 </button>
               </div>
             )}
-            <div className="token-selector-container">
-              <TokenSelector
-                label="From"
-                tokens={tokens}
-                selectedToken={inputToken}
-                onSelect={setInputToken}
-              />
-              
-              <button className="swap-button" onClick={swapTokens}>
-                ⇅
-              </button>
+            <div className="swap-card">
+              <div className="token-selector-container">
+                <TokenSelector
+                  label="Sell"
+                  tokens={tokens}
+                  selectedToken={inputToken}
+                  onSelect={setInputToken}
+                />
+                
+                <button className="swap-button" onClick={swapTokens}>
+                  ⇅
+                </button>
 
-              <TokenSelector
-                label="To"
-                tokens={tokens}
-                selectedToken={outputToken}
-                onSelect={setOutputToken}
-              />
+                <TokenSelector
+                  label="Buy"
+                  tokens={tokens}
+                  selectedToken={outputToken}
+                  onSelect={setOutputToken}
+                />
+              </div>
             </div>
           </>
         )}
