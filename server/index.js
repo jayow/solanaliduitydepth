@@ -715,13 +715,16 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       const elapsedSeconds = (elapsed / 1000).toFixed(1);
       // Only stop if we're way over timeout (give 5 seconds buffer for the request itself)
       if (elapsed > MAX_CALCULATION_TIME + 5000) {
-        console.warn(`⏱️ Timeout exceeded (${elapsedSeconds}s), stopping at ${formatUSD(usdAmount)}`);
-        console.warn(`⚠️ MISSING TRADE SIZES: ${usdTradeSizes.slice(usdTradeSizes.indexOf(usdAmount)).map(s => formatUSD(s)).join(', ')}`);
+        const timeoutMsg = `⏱️ Timeout exceeded (${elapsedSeconds}s), stopping at ${formatUSD(usdAmount)}\n⚠️ MISSING TRADE SIZES: ${usdTradeSizes.slice(usdTradeSizes.indexOf(usdAmount)).map(s => formatUSD(s)).join(', ')}`;
+        console.warn(timeoutMsg);
+        logs.push(timeoutMsg);
         break;
       }
       // If we're close to timeout but not over, still try (request might be fast)
       if (elapsed > MAX_CALCULATION_TIME) {
-        console.warn(`⏱️ Approaching timeout (${elapsedSeconds}s), but attempting ${formatUSD(usdAmount)} anyway...`);
+        const approachingTimeoutMsg = `⏱️ Approaching timeout (${elapsedSeconds}s), but attempting ${formatUSD(usdAmount)} anyway...`;
+        console.warn(approachingTimeoutMsg);
+        logs.push(approachingTimeoutMsg);
       }
       
       // Extra delay for large amounts to avoid rate limits (only if we have time)
