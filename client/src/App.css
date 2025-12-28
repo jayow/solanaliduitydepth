@@ -57,6 +57,7 @@
 .app-main {
   max-width: 1400px;
   margin: 0 auto;
+  padding-left: 0;
 }
 
 .token-count-info {
@@ -94,6 +95,8 @@
   align-items: flex-start;
   margin-top: 2rem;
   flex-wrap: wrap;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .sidebar-container {
