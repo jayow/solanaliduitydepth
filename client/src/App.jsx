@@ -242,23 +242,25 @@ function App() {
                 <div className="sidebar-container">
                   <div className="swap-card">
                     <div className="token-selector-container">
-                      <TokenSelector
-                        label="Input Token"
-                        tokens={tokens}
-                        selectedToken={inputToken}
-                        onSelect={setInputToken}
-                      />
-                      
+                    <TokenSelector
+                      label="Input Token"
+                      tokens={tokens}
+                      selectedToken={inputToken}
+                      onSelect={setInputToken}
+                    />
+                    
+                    <div className="swap-button-wrapper">
                       <button className="swap-button" onClick={swapTokens}>
-                        ⇅
+                        <span className="swap-button-inner">⇅</span>
                       </button>
+                    </div>
 
-                      <TokenSelector
-                        label="Output Token"
-                        tokens={tokens}
-                        selectedToken={outputToken}
-                        onSelect={setOutputToken}
-                      />
+                    <TokenSelector
+                      label="Output Token"
+                      tokens={tokens}
+                      selectedToken={outputToken}
+                      onSelect={setOutputToken}
+                    />
                     </div>
                   </div>
                   {tokens.length > 0 && (
