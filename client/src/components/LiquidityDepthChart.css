@@ -1,0 +1,157 @@
+.liquidity-chart-container {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin-top: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chart-header h2 {
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.price-info {
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.slippage-range {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.slippage-range strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.chart-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.depth-stats {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.stat-value.buy {
+  color: #10b981;
+}
+
+.stat-value.sell {
+  color: #ef4444;
+}
+
+.custom-tooltip {
+  background: white;
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  overflow: hidden;
+}
+
+.tooltip-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.tooltip-usd-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.tooltip-content {
+  padding: 1rem;
+  background: white;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tooltip-row:last-child {
+  border-bottom: none;
+}
+
+.tooltip-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.tooltip-value {
+  font-size: 0.9rem;
+  color: #1f2937;
+  font-weight: 600;
+  text-align: right;
+}
+
+.tooltip-item {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.no-data {
+  background: white;
+  border-radius: 16px;
+  padding: 4rem;
+  text-align: center;
+  color: #666;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+

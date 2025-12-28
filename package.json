@@ -1,0 +1,20 @@
+{
+  "name": "solana-liquidity-depth",
+  "version": "1.0.0",
+  "description": "Solana liquidity depth visualization using Jupiter API",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && NODE_TLS_REJECT_UNAUTHORIZED=0 npm start",
+    "client": "cd client && npm run dev",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build"
+  },
+  "keywords": ["solana", "jupiter", "liquidity", "defi"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

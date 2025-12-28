@@ -1,0 +1,235 @@
+.liquidity-table-container {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin-top: 2rem;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.table-header h2 {
+  color: #333;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.price-info {
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #667eea;
+  font-size: 0.9rem;
+}
+
+.liquidity-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.liquidity-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.liquidity-table thead {
+  background: #f9fafb;
+}
+
+.liquidity-table th {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.liquidity-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.liquidity-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.liquidity-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.liquidity-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.buy-row {
+  border-left: 3px solid transparent;
+}
+
+.buy-row:hover {
+  background-color: #f0fdf4 !important;
+  border-left-color: #10b981;
+}
+
+.sell-row {
+  border-left: 3px solid transparent;
+}
+
+.sell-row:hover {
+  background-color: #fef2f2 !important;
+  border-left-color: #ef4444;
+}
+
+.trade-amount,
+.receive-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.trade-amount .usd-value-primary {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.trade-amount .token-amount-secondary {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.trade-amount .token-amount,
+.receive-amount .token-amount {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.trade-amount .usd-value,
+.receive-amount .usd-value {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.receive-amount {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.receive-amount .token-amount {
+  color: #059669;
+}
+
+.receive-amount .usd-value {
+  color: #6b7280;
+}
+
+.via-label {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.slippage-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.price-cell {
+  color: #4b5563;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+}
+
+.slippage {
+  font-weight: 600;
+}
+
+.slippage.low {
+  color: #10b981;
+}
+
+.slippage.medium {
+  color: #f59e0b;
+}
+
+.slippage.high {
+  color: #ef4444;
+}
+
+.table-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.info-note {
+  background: #f0f9ff;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.info-note p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 0.9rem;
+}
+
+.no-data {
+  background: white;
+  border-radius: 16px;
+  padding: 4rem;
+  text-align: center;
+  color: #666;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.no-data .sub-text {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.table-footer p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .liquidity-table-container {
+    padding: 1rem;
+  }
+
+  .liquidity-table th,
+  .liquidity-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
