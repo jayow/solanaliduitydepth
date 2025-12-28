@@ -357,6 +357,11 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               trigger="hover"
               animationDuration={0}
             />
+            <defs>
+              <filter id="blur">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+              </filter>
+            </defs>
             <Line
               type="monotone"
               dataKey="priceImpact"
@@ -366,7 +371,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               activeDot={false}
               isAnimationActive={false}
               connectNulls={false}
-              style={{ filter: 'blur(4px)' }}
+              filter="url(#blur)"
             />
             <Line
               type="monotone"
