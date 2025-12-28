@@ -318,6 +318,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             }}
           />
           <span style={{ fontSize: '0.85rem', marginLeft: '0.25rem' }}>%</span>
+          </div>
         </div>
       </div>
 
