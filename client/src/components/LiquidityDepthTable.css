@@ -46,24 +46,49 @@
   table-layout: fixed;
 }
 
-.liquidity-table th:first-child,
-.liquidity-table td:first-child {
-  width: 35%;
+.liquidity-table th,
+.liquidity-table td {
+  width: 25%;
+  vertical-align: top;
 }
 
-.liquidity-table th:nth-child(2),
-.liquidity-table td:nth-child(2) {
-  width: 45%;
-}
-
-.liquidity-table th:last-child,
-.liquidity-table td:last-child {
-  width: 20%;
+.trade-size-header {
   text-align: center;
+  padding: 0.6rem 0.5rem !important;
 }
 
-.price-impact-cell {
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header-trade {
+  font-weight: 600;
+  color: #E6EAF0;
+  font-size: 0.8rem;
+}
+
+.trade-data-cell {
   text-align: center;
+  padding: 0.7rem 0.5rem !important;
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cell-receive {
+  font-size: 0.85rem;
+  color: #E6EAF0;
+  font-weight: 500;
+}
+
+.cell-impact {
+  font-size: 0.75rem;
 }
 
 .liquidity-table thead {

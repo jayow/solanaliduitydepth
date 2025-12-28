@@ -138,32 +138,69 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
         <table className="liquidity-table">
           <thead>
             <tr>
-              <th>Trade Size</th>
-              <th>Receive Amount</th>
-              <th>Price Impact</th>
+              {tableData.slice(0, 4).map((_, index) => (
+                <th key={index} className="trade-size-header">
+                  <div className="header-content">
+                    <span className="header-trade">{formatCurrency(tableData[index]?.tradeUsdValue || 0)}</span>
+                  </div>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {tableData.map((row, index) => (
-              <tr key={index}>
-                <td className="trade-amount">
-                  <span className="usd-value-primary">{formatCurrency(row.tradeUsdValue)}</span>
-                  <span className="token-amount-secondary">({formatTokenAmount(row.tradeAmount)} {inputToken?.symbol})</span>
+            <tr>
+              {tableData.slice(0, 4).map((row, index) => (
+                <td key={index} className="trade-data-cell">
+                  <div className="cell-content">
+                    <div className="cell-receive">
+                      <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
+                    </div>
+                    <div className="cell-impact">
+                      <span className="slippage-badge" style={{
+                        color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
+                        fontSize: '0.75rem',
+                        fontWeight: 600
+                      }}>
+                        {row.priceImpact.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
                 </td>
-                <td className="receive-amount">
-                  <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
-                </td>
-                <td className="price-impact-cell">
-                  <span className="slippage-badge" style={{
-                    color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
-                    fontSize: '0.8rem',
-                    fontWeight: 600
-                  }}>
-                    {row.priceImpact.toFixed(2)}%
-                  </span>
-                </td>
-              </tr>
-            ))}
+              ))}
+            </tr>
+            {tableData.length > 4 && (
+              <>
+                <tr>
+                  {tableData.slice(4, 8).map((_, index) => (
+                    <th key={index} className="trade-size-header">
+                      <div className="header-content">
+                        <span className="header-trade">{formatCurrency(tableData[index + 4]?.tradeUsdValue || 0)}</span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  {tableData.slice(4, 8).map((row, index) => (
+                    <td key={index} className="trade-data-cell">
+                      <div className="cell-content">
+                        <div className="cell-receive">
+                          <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
+                        </div>
+                        <div className="cell-impact">
+                          <span className="slippage-badge" style={{
+                            color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
+                            fontSize: '0.75rem',
+                            fontWeight: 600
+                          }}>
+                            {row.priceImpact.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              </>
+            )}
           </tbody>
         </table>
       </div>
