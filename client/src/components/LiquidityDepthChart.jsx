@@ -335,7 +335,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               interval="preserveStartEnd"
             />
             <YAxis
-              domain={(dataMin, dataMax) => [0, maxDisplayCap]}
+              domain={[0, maxDisplayCap]}
               type="number"
               allowDataOverflow={true}
               padding={{ top: 0, bottom: 0 }}
@@ -370,6 +370,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               animationDuration={400}
               animationEasing="ease-out"
               connectNulls={false}
+              name="Price Impact"
             />
           </LineChart>
         </ResponsiveContainer>
