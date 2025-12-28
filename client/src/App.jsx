@@ -252,7 +252,7 @@ function App() {
             <div className="swap-card">
               <div className="token-selector-container">
                 <TokenSelector
-                  label="Sell"
+                  label="Input Token"
                   tokens={tokens}
                   selectedToken={inputToken}
                   onSelect={setInputToken}
@@ -263,7 +263,7 @@ function App() {
                 </button>
 
                 <TokenSelector
-                  label="Buy"
+                  label="Output Token"
                   tokens={tokens}
                   selectedToken={outputToken}
                   onSelect={setOutputToken}
