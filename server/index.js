@@ -719,15 +719,28 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(`✅ Using first successful quote as baseline price: ${baselinePrice.toFixed(6)}`);
         }
         
-        // Use baseline price for price impact calculation
-        const referencePrice = baselinePrice;
-        
-        // Calculate price impact (how much price changes from baseline due to trade size)
-        // This is technically "price impact" not "slippage", but we keep both terms for compatibility
-        // Price Impact = |(execution_price - baseline_price) / baseline_price| * 100
-        const priceImpact = referencePrice > 0 
-          ? Math.abs((price - referencePrice) / referencePrice) * 100 
-          : 0;
+        // Use Jupiter's priceImpactPct from the quote response if available (more accurate)
+        // Jupiter calculates this using their routing algorithm and includes all liquidity sources
+        // If not available, fall back to our calculation
+        let priceImpact = 0;
+        if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
+          // Jupiter returns priceImpactPct as a decimal (e.g., 0.9999 = 99.99%)
+          // Convert to percentage
+          priceImpact = Math.abs(parseFloat(quote.priceImpactPct)) * 100;
+          console.log(`📊 Using Jupiter's priceImpactPct: ${priceImpact.toFixed(2)}%`);
+        } else {
+          // Fallback: Calculate price impact ourselves
+          // Use baseline price for price impact calculation
+          const referencePrice = baselinePrice;
+          
+          // Calculate price impact (how much price changes from baseline due to trade size)
+          // This is technically "price impact" not "slippage", but we keep both terms for compatibility
+          // Price Impact = |(execution_price - baseline_price) / baseline_price| * 100
+          priceImpact = referencePrice > 0 
+            ? Math.abs((price - referencePrice) / referencePrice) * 100 
+            : 0;
+          console.log(`📊 Calculated price impact: ${priceImpact.toFixed(2)}% (Jupiter's priceImpactPct not available)`);
+        }
         
         // Slippage is the same as price impact in this context (no market movement during execution)
         // In real trading, slippage can include price impact + market movement + MEV

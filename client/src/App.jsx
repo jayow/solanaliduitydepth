@@ -42,7 +42,10 @@ function App() {
       const statusCode = err.response?.status;
       const responseData = err.response?.data;
       
-      if (statusCode === 429 || responseData?.status === 'rate_limited') {
+      if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error') || err.message?.includes('Failed to fetch')) {
+        setJupiterStatus('error');
+        setStatusMessage(`❌ Cannot connect to backend server. Make sure the server is running on port 3001.`);
+      } else if (statusCode === 429 || responseData?.status === 'rate_limited') {
         setJupiterStatus('rate_limited');
         const retryAfter = responseData?.retryAfter || 60;
         setStatusMessage(`⏳ Rate limited: Jupiter API is temporarily rate-limited. Please wait ${retryAfter} seconds and try again.`);
@@ -104,7 +107,16 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching tokens:', err);
-      const errorMsg = err.response?.data?.error || err.message || 'Unknown error';
+      let errorMsg = 'Unknown error';
+      
+      if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error') || err.message?.includes('Failed to fetch')) {
+        errorMsg = 'Cannot connect to backend server. Make sure the server is running on port 3001.';
+      } else if (err.response) {
+        errorMsg = err.response.data?.error || err.response.statusText || `HTTP ${err.response.status}`;
+      } else {
+        errorMsg = err.message || 'Unknown error';
+      }
+      
       setError(`Failed to load tokens: ${errorMsg}`);
       setStatusMessage(`❌ Failed to load tokens: ${errorMsg}`);
     } finally {
@@ -172,7 +184,16 @@ function App() {
       }
     } catch (err) {
       console.error('Error fetching liquidity depth:', err);
-      const errorMsg = err.response?.data?.error || err.response?.data?.details || err.message || 'Unknown error';
+      let errorMsg = 'Unknown error';
+      
+      if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error') || err.message?.includes('Failed to fetch')) {
+        errorMsg = 'Cannot connect to backend server. Make sure the server is running on port 3001.';
+      } else if (err.response) {
+        errorMsg = err.response.data?.error || err.response.data?.details || err.response.statusText || `HTTP ${err.response.status}`;
+      } else {
+        errorMsg = err.message || 'Unknown error';
+      }
+      
       setError(`Failed to fetch liquidity depth: ${errorMsg}`);
       setStatusMessage(`❌ Error: ${errorMsg}`);
     } finally {
