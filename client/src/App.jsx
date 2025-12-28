@@ -11,6 +11,7 @@ function App() {
   const [tokens, setTokens] = useState([]);
   const [inputToken, setInputToken] = useState(null);
   const [outputToken, setOutputToken] = useState(null);
+  const [focusedPanel, setFocusedPanel] = useState(null); // 'input' or 'output'
   const [buyDepth, setBuyDepth] = useState([]);
   const [sellDepth, setSellDepth] = useState([]);
   const [loading, setLoading] = useState(false);

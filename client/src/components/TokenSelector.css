@@ -42,8 +42,23 @@
 }
 
 .token-selector-button:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.10);
-  outline-offset: 2px;
+  outline: none;
+}
+
+.token-selector-button.selected {
+  border: 1px solid rgba(170, 255, 90, 0.35);
+  background: #101A25;
+  box-shadow: 0 0 0 1px rgba(170, 255, 90, 0.18), 0 0 28px rgba(170, 255, 90, 0.12);
+}
+
+.token-selector-button.selected::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: rgba(170, 255, 90, 0.12);
 }
 
 .selected-token {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './TokenSelector.css';
 
-function TokenSelector({ label, tokens, selectedToken, onSelect }) {
+function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
@@ -107,9 +107,28 @@ function TokenSelector({ label, tokens, selectedToken, onSelect }) {
   };
 
   return (
-    <div className="token-selector" ref={dropdownRef}>
+    <div className={`token-selector ${isSelected ? 'selected' : ''}`} ref={dropdownRef}>
       <label className="token-selector-label">{label}</label>
-      <div className="token-selector-button" onClick={() => setIsOpen(!isOpen)}>
+      <div 
+        className={`token-selector-button ${isSelected ? 'selected' : ''}`} 
+        onClick={() => {
+          setIsOpen(!isOpen);
+          if (onFocusChange) {
+            onFocusChange(!isOpen ? label.toLowerCase().includes('input') ? 'input' : 'output' : null);
+          }
+        }}
+        onFocus={() => {
+          if (onFocusChange) {
+            onFocusChange(label.toLowerCase().includes('input') ? 'input' : 'output');
+          }
+        }}
+        onBlur={() => {
+          if (onFocusChange) {
+            onFocusChange(null);
+          }
+        }}
+        tabIndex={0}
+      >
         {selectedToken ? (
           <div className="selected-token">
             <span className="token-symbol">{selectedToken.symbol}</span>
