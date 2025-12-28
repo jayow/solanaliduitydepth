@@ -360,6 +360,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             <Line
               type="monotone"
               dataKey="priceImpact"
+              stroke="rgba(62,230,183,0.25)"
+              strokeWidth={6}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              connectNulls={false}
+              style={{ filter: 'blur(4px)' }}
+            />
+            <Line
+              type="monotone"
+              dataKey="priceImpact"
               stroke="#3EE6B7"
               strokeWidth={3}
               strokeLinecap="round"
@@ -370,17 +381,6 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               animationDuration={400}
               animationEasing="ease-out"
               connectNulls={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="priceImpact"
-              stroke="rgba(62,230,183,0.25)"
-              strokeWidth={6}
-              dot={false}
-              activeDot={false}
-              isAnimationActive={false}
-              connectNulls={false}
-              style={{ filter: 'blur(4px)' }}
             />
           </LineChart>
         </ResponsiveContainer>
