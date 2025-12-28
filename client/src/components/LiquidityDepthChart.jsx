@@ -307,7 +307,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
-            margin={{ top: 10, right: 16, bottom: 54, left: 60 }}
+            margin={{ top: 6, right: 12, bottom: 54, left: 52 }}
           >
             <CartesianGrid 
               strokeDasharray="3 6" 
@@ -339,7 +339,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               type="number"
               allowDataOverflow={true}
               padding={{ top: 0, bottom: 0 }}
-              label={{ value: 'Price Impact (%)', angle: -90, position: 'outside', offset: 22, style: { textAnchor: 'middle', fill: '#7F8A9A', fontSize: 12, fontWeight: 500 } }}
+              label={{ value: 'Price Impact (%)', angle: -90, position: 'outside', offset: 16, style: { textAnchor: 'middle', fill: '#7F8A9A', fontSize: 12, fontWeight: 500 } }}
               stroke="rgba(255,255,255,0.10)"
               tick={{ fill: '#7F8A9A', fontSize: 11 }}
               tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
