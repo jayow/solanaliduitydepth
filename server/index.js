@@ -209,8 +209,10 @@ async function getTokenList() {
   // Ensure important tokens from fallback are always included (even if Jupiter has different versions)
   const importantTokens = getFallbackTokens().filter(t => {
     // Always include these specific tokens by address
+    // NOTE: USX is NOT in Jupiter's official token list - we force-add it for user convenience
+    // This may result in limited liquidity/routing compared to officially listed tokens
     const importantAddresses = [
-      '6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG', // USX (specific version user wants)
+      '6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG', // USX (NOT in Jupiter official list - force-added)
       'So11111111111111111111111111111111111111112', // SOL
       'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
     ];
@@ -244,8 +246,10 @@ async function getTokenList() {
 }
 
 // Fallback token list with popular Solana tokens
+// NOTE: Tokens added here (like USX, eUSX) are NOT in Jupiter's official token list.
+// Jupiter can route them but may have limited liquidity/routing support.
 function getFallbackTokens() {
-  console.log('📋 Returning fallback token list (includes USX)');
+  console.log('📋 Returning fallback token list (includes USX, eUSX - not in Jupiter official list)');
   return [
     {
       address: 'So11111111111111111111111111111111111111112',
@@ -888,8 +892,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
             // For $50M+, try: 40M, 30M, 20M, 15M, 12M, 11M, 10.5M, 10M
             smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
           } else if (usdAmount >= 10000000) {
-            // For $10M+, try: 9M, 8M, 7M, 6M, 5M, 4M, 3M, 2M
-            smallerAmounts = [9000000, 8000000, 7000000, 6000000, 5000000, 4000000, 3000000, 2000000];
+            // For $10M+, try amounts closer to $10M first, then smaller
+            // User reports Jupiter frontend can route $10M+ with high price impact
+            smallerAmounts = [10000000, 9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000];
           } else {
             smallerAmounts = [];
           }
