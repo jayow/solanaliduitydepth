@@ -194,8 +194,10 @@ async function getTokenList() {
     // Filter out invalid tokens - be less strict to include more tokens
     // Only require address (mint address is essential for routing)
     // Symbol/name are nice-to-have but not required for routing
-    const address = token.address || token.mintAddress || token.mint;
+    // After normalization, address is always in the 'address' field
+    const address = token.address;
     return address && 
+           typeof address === 'string' &&
            address.length > 0 &&
            address.length <= 44; // Valid Solana address length (base58, max 44 chars)
     // Note: We don't require symbol/name as some tokens might not have them but are still routable
