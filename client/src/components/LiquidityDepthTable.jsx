@@ -175,7 +175,7 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
                 <td className="price-impact-cell">
                   <span className="slippage-badge" style={{
                     color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
-                    fontSize: '0.8rem',
+                    fontSize: '0.7rem',
                     fontWeight: 600
                   }}>
                     {row.priceImpact.toFixed(2)}%
