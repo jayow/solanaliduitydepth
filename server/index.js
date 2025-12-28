@@ -833,16 +833,30 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     }
   }
   
-  // Log final status
-  console.log(`\n📊 Calculation complete. Processed ${depthPoints.length} of ${usdTradeSizes.length} trade sizes.`);
+  // Log final status with detailed breakdown
+  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+  console.log(`📊 CALCULATION COMPLETE`);
+  console.log(`   Total trade sizes tested: ${usdTradeSizes.length}`);
+  console.log(`   Successful data points: ${depthPoints.length}`);
+  console.log(`   Expected: ${usdTradeSizes.map(s => formatUSD(s)).join(', ')}`);
+  
+  const collectedSizes = depthPoints.map(p => p.tradeUsdValue).sort((a, b) => a - b);
+  console.log(`   Collected: ${collectedSizes.map(s => formatUSD(s)).join(', ')}`);
+  
   if (depthPoints.length < usdTradeSizes.length) {
     const missingSizes = usdTradeSizes.filter(size => 
       !depthPoints.some(point => point.tradeUsdValue === size)
     );
     if (missingSizes.length > 0) {
-      console.warn(`⚠️ Missing trade sizes: ${missingSizes.map(s => formatUSD(s)).join(', ')}`);
+      console.warn(`\n⚠️ MISSING TRADE SIZES (${missingSizes.length}):`);
+      missingSizes.forEach(size => {
+        console.warn(`   ❌ ${formatUSD(size)} - NOT COLLECTED`);
+      });
     }
+  } else {
+    console.log(`   ✅ All trade sizes collected successfully!`);
   }
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
   
   const endTime = Date.now();
   const totalTime = (endTime - calculationStartTime) / 1000;
