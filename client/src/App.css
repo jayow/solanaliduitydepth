@@ -16,8 +16,7 @@
 }
 
 .app-header h1,
-.app-header p,
-.app-header .app-credit {
+.app-header p {
   margin-left: 0;
   padding-left: 120px;
   text-align: left;
