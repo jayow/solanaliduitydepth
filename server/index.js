@@ -131,13 +131,8 @@ async function getTokenList() {
         
         // Continue trying all endpoints to get maximum token coverage
         // Different endpoints may have different tokens, so combine them all
-        // Only skip if we've already tried all Jupiter endpoints and got good coverage
-        const isJupiterEndpoint = endpoint.includes('jup.ag') || endpoint.includes('api.jup.ag');
-        const isLastJupiterEndpoint = endpoint === JUPITER_TOKEN_URL; // Last Jupiter endpoint
-        if (isLastJupiterEndpoint && tokenMap.size >= 10000) {
-          console.log(`✅ Got comprehensive token list (${tokenMap.size} tokens), skipping fallback endpoints`);
-          // Still continue to add important fallback tokens
-        }
+        // Don't stop early - Jupiter has multiple endpoints with different token sets
+        // The 'all' endpoint might have different tokens than 'strict' or API endpoints
       } else {
         console.warn(`⚠️ Endpoint ${endpoint} returned empty or invalid data`);
       }
@@ -196,11 +191,14 @@ async function getTokenList() {
       ...token // Keep all original fields
     };
   }).filter(token => {
-    // Filter out invalid tokens
-    return token.address && 
-           token.symbol && 
-           token.address.length > 0 && 
-           token.symbol.length > 0;
+    // Filter out invalid tokens - be less strict to include more tokens
+    // Only require address (mint address is essential for routing)
+    // Symbol/name are nice-to-have but not required for routing
+    const address = token.address || token.mintAddress || token.mint;
+    return address && 
+           address.length > 0 &&
+           address.length <= 44; // Valid Solana address length (base58, max 44 chars)
+    // Note: We don't require symbol/name as some tokens might not have them but are still routable
   });
   
   if (tokens.length === 0) {
