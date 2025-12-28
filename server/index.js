@@ -833,9 +833,20 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           rawOutputAmount: outputAmountRaw,
         });
         
-        console.log(`✅ ${formatUSD(usdAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`);
+        const successMsg = `✅ ${formatUSD(usdAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
+        console.log(successMsg);
+        logs.push(successMsg);
       } else {
-        console.warn(`⚠️ Invalid quote response for ${formatUSD(usdAmount)}:`, quote ? 'Missing outAmount/inAmount' : 'No quote data');
+        const invalidMsg = `⚠️ Invalid quote response for ${formatUSD(usdAmount)}: ${quote ? 'Missing outAmount/inAmount' : 'No quote data'}`;
+        console.warn(invalidMsg);
+        logs.push(invalidMsg);
+        errors.push({
+          tradeSize: usdAmount,
+          tradeSizeFormatted: formatUSD(usdAmount),
+          error: quote ? 'Missing outAmount/inAmount in quote response' : 'No quote data returned',
+          statusCode: null,
+          timestamp: new Date().toISOString()
+        });
       }
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error';
