@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -11,6 +11,7 @@ import {
 import './LiquidityDepthChart.css';
 
 function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
+  const [maxDisplayCap, setMaxDisplayCap] = useState(15); // Default 15% cap
   // Format currency with K/M/B suffixes
   const formatCurrency = (amount) => {
     if (amount === undefined || amount === null || isNaN(amount)) return 'N/A';
@@ -233,12 +234,10 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
   const maxTradeValue = Math.max(...chartData.map(d => d.tradeUsdValue || 0));
   const minTradeValue = Math.min(...chartData.map(d => d.tradeUsdValue || 0));
 
-  // Calculate Y-axis domain dynamically
-  // For very high price impact (>50%), use a reasonable upper bound but don't hard cap
-  // This allows visualization of extreme values while keeping chart readable
-  const yAxisMax = maxPriceImpact > 50 
-    ? Math.min(maxPriceImpact * 1.15, 1000) // Cap at 1000% for extremely illiquid pairs
-    : Math.max(maxPriceImpact * 1.1, 10); // Normal scaling for typical values
+  // Calculate Y-axis domain using the user-defined cap
+  // Cap the display at maxDisplayCap, but still show actual values in tooltips
+  const yAxisMax = Math.min(maxPriceImpact * 1.1, maxDisplayCap);
+  const hasExceededCap = maxPriceImpact > maxDisplayCap;
 
   return (
     <div className="liquidity-chart-container">
@@ -247,11 +246,39 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <div className="slippage-range">
           <span>Min <strong>0%</strong></span>
           <span>Max <strong>{maxPriceImpact.toFixed(1)}%</strong></span>
-          {maxPriceImpact > 100 && (
+          {hasExceededCap && (
             <span style={{ color: '#ef4444', fontSize: '0.85rem', marginLeft: '0.5rem' }}>
-              ⚠️ Extreme
+              ⚠️ Exceeds cap
             </span>
           )}
+        </div>
+        <div className="cap-control">
+          <label htmlFor="impact-cap" style={{ fontSize: '0.85rem', marginRight: '0.5rem' }}>
+            Display Cap:
+          </label>
+          <input
+            id="impact-cap"
+            type="number"
+            min="1"
+            max="1000"
+            step="1"
+            value={maxDisplayCap}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              if (!isNaN(value) && value > 0 && value <= 1000) {
+                setMaxDisplayCap(value);
+              }
+            }}
+            style={{
+              width: '60px',
+              padding: '0.25rem 0.5rem',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '0.85rem',
+              textAlign: 'center'
+            }}
+          />
+          <span style={{ fontSize: '0.85rem', marginLeft: '0.25rem' }}>%</span>
         </div>
       </div>
 

@@ -40,6 +40,29 @@
   font-weight: 600;
 }
 
+.cap-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.cap-control label {
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.cap-control input {
+  transition: all 0.2s ease;
+}
+
+.cap-control input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
 .chart-footer {
   margin-top: 2rem;
   padding-top: 2rem;
