@@ -233,13 +233,25 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
   const maxTradeValue = Math.max(...chartData.map(d => d.tradeUsdValue || 0));
   const minTradeValue = Math.min(...chartData.map(d => d.tradeUsdValue || 0));
 
+  // Calculate Y-axis domain dynamically
+  // For very high price impact (>50%), use a reasonable upper bound but don't hard cap
+  // This allows visualization of extreme values while keeping chart readable
+  const yAxisMax = maxPriceImpact > 50 
+    ? Math.min(maxPriceImpact * 1.15, 1000) // Cap at 1000% for extremely illiquid pairs
+    : Math.max(maxPriceImpact * 1.1, 10); // Normal scaling for typical values
+
   return (
     <div className="liquidity-chart-container">
       <div className="chart-header">
         <h2>Price Impact</h2>
         <div className="slippage-range">
           <span>Min <strong>0%</strong></span>
-          <span>Max <strong>{Math.min(maxPriceImpact, 100).toFixed(1)}%</strong></span>
+          <span>Max <strong>{maxPriceImpact.toFixed(1)}%</strong></span>
+          {maxPriceImpact > 100 && (
+            <span style={{ color: '#ef4444', fontSize: '0.85rem', marginLeft: '0.5rem' }}>
+              ⚠️ Extreme
+            </span>
+          )}
         </div>
       </div>
 
@@ -260,11 +272,11 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
               return `$${value.toFixed(0)}`;
             }}
-            label={{ value: 'Tokens', position: 'insideBottom', offset: -5 }}
+            label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: -5 }}
             stroke="#666"
           />
           <YAxis
-            domain={[0, Math.min(Math.max(maxPriceImpact * 1.1, 10), 100)]}
+            domain={[0, yAxisMax]}
             label={{ value: 'Price Impact', angle: -90, position: 'insideLeft' }}
             stroke="#666"
             tickFormatter={(value) => `${value}%`}
