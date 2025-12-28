@@ -2,6 +2,9 @@ import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
@@ -109,8 +112,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     }).filter(point => point.tradeUsdValue > 0 && point.priceImpact >= 0);
     
     // Densify the data to allow hovering at any point
-    // Increased to 50 points for smoother interpolation and better hover accuracy
-    return densifyData(baseData, 50);
+    // Increased to 100 points for much smoother curves
+    return densifyData(baseData, 100);
   }, [buyDepth, sellDepth, inputToken, outputToken]);
 
   // Interpolate values between data points based on X position (tradeUsdValue)
@@ -324,8 +327,41 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <ResponsiveContainer width="100%" height={400}>
           <LineChart
             data={chartData}
-            margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+            margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
           >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke="rgba(255,255,255,0.06)" 
+              vertical={false}
+            />
+            <XAxis
+              dataKey="tradeUsdValue"
+              type="number"
+              scale="log"
+              domain={[minTradeValue, maxTradeValue]}
+              tickFormatter={(value) => {
+                if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(0)}B`;
+                if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M`;
+                if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+                return `$${value.toFixed(0)}`;
+              }}
+              label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: -5 }}
+              stroke="#7F8A9A"
+              tick={{ fill: '#7F8A9A', fontSize: 12 }}
+            />
+            <YAxis
+              domain={(dataMin, dataMax) => [0, maxDisplayCap]}
+              type="number"
+              allowDataOverflow={true}
+              padding={{ top: 0, bottom: 0 }}
+              label={{ value: 'Price Impact (%)', angle: -90, position: 'insideLeft' }}
+              stroke="#7F8A9A"
+              tick={{ fill: '#7F8A9A', fontSize: 12 }}
+              tickFormatter={(value) => {
+                if (value > maxDisplayCap) return '';
+                return `${value}%`;
+              }}
+            />
             <Tooltip 
               content={<CustomTooltip />}
               cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }}
@@ -335,7 +371,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               animationDuration={0}
             />
             <Line
-              type="monotone"
+              type="natural"
               dataKey="priceImpact"
               stroke="#3EE6B7"
               strokeWidth={3}
