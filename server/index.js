@@ -788,17 +788,18 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       
       // Log detailed error info
       if (statusCode === 429) {
-        console.error(`⚠️ Rate limited for ${formatUSD(usdAmount)} - will retry with backoff`);
+        console.error(`⚠️ Rate limited for ${formatUSD(usdAmount)} - exhausted all retries`);
       } else if (statusCode >= 400) {
         console.error(`❌ API error ${statusCode} for ${formatUSD(usdAmount)}: ${errorMsg}`);
         // For large amounts, log more details
         if (usdAmount >= 10000000) {
-          console.error(`   This is a large trade size. Error details:`, {
+          console.error(`   ⚠️ CRITICAL: Large trade size failed. Error details:`, {
             statusCode,
             error: errorMsg,
             inputMint: quoteInputMint ? quoteInputMint.slice(0, 8) : inputMint?.slice(0, 8),
             outputMint: quoteOutputMint ? quoteOutputMint.slice(0, 8) : outputMint?.slice(0, 8),
-            rawAmount: rawAmount ? rawAmount.toLocaleString() : 'N/A'
+            rawAmount: rawAmount ? rawAmount.toLocaleString() : 'N/A',
+            tokenAmount: rawAmount ? (rawAmount / Math.pow(10, quoteInputDecimals)).toFixed(2) : 'N/A'
           });
         }
       } else {
@@ -808,6 +809,11 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       // Note: We skip this amount but will try the next one
       // Log which amount we're skipping for debugging
       console.log(`⏭️ Skipping ${formatUSD(usdAmount)} due to error, continuing to next trade size...`);
+      
+      // For very large amounts ($50M+), this is concerning - log prominently
+      if (usdAmount >= 50000000) {
+        console.error(`🚨 WARNING: Failed to get quote for ${formatUSD(usdAmount)} - this is a critical data point!`);
+      }
     }
   }
   
