@@ -250,83 +250,65 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
   return (
     <div className="liquidity-chart-container">
       <div className="chart-header">
-        <div className="chart-header-content">
-          <span>Y-axis: <strong>0% - {maxDisplayCap}%</strong></span>
+        <div className="header-left-cluster">
+          <h2 className="chart-title">Price Impact</h2>
           {maxTradeValueWithinCap > 0 ? (
-            <span>
+            <span className="chart-meta">
               Max trade within cap: <strong>{formatCurrency(maxTradeValueWithinCap)}</strong>
             </span>
           ) : (
-            <span style={{ color: '#ef4444' }}>
+            <span className="chart-meta" style={{ color: '#ef4444' }}>
               No trades fit within {maxDisplayCap}% cap
             </span>
           )}
           {hasDataAboveCap && (
-            <span style={{ color: '#ef4444' }}>
+            <span className="chart-meta" style={{ color: '#ef4444' }}>
               ⚠️ Some data exceeds cap (max: {maxPriceImpact.toFixed(1)}%)
             </span>
           )}
+        </div>
+        <div className="header-right-cluster">
           <div className="cap-control">
-            <label htmlFor="impact-cap">
-              Display Cap:
-            </label>
+            <label htmlFor="impact-cap">Display Cap:</label>
             <input
               id="impact-cap"
               type="number"
               min="1"
               max="1000"
-            step="1"
-            value={capInputValue}
-            onChange={(e) => {
-              const inputValue = e.target.value;
-              // Update local state immediately to allow typing
-              setCapInputValue(inputValue);
-              
-              // Only update the actual cap if it's a valid number
-              const value = parseInt(inputValue, 10);
-              if (!isNaN(value) && value > 0 && value <= 1000) {
-                setMaxDisplayCap(value);
-              }
-            }}
-            onBlur={(e) => {
-              // On blur, validate and fix the value
-              const value = parseInt(e.target.value, 10);
-              if (isNaN(value) || value <= 0) {
-                // Reset to current cap if invalid
-                setCapInputValue(maxDisplayCap.toString());
-              } else if (value > 1000) {
-                // Cap at 1000 if too high
-                setCapInputValue('1000');
-                setMaxDisplayCap(1000);
-              } else {
-                // Ensure it matches the actual cap
-                setCapInputValue(value.toString());
-                setMaxDisplayCap(value);
-              }
-            }}
-            onFocus={(e) => {
-              // Select all text on focus for easy editing
-              e.target.select();
-            }}
-            style={{
-              width: '60px',
-              padding: '0.25rem 0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '0.85rem',
-              textAlign: 'center'
-            }}
-          />
-          <span style={{ fontSize: '0.85rem', marginLeft: '0.25rem' }}>%</span>
+              step="1"
+              value={capInputValue}
+              onChange={(e) => {
+                const inputValue = e.target.value;
+                setCapInputValue(inputValue);
+                const value = parseInt(inputValue, 10);
+                if (!isNaN(value) && value > 0 && value <= 1000) {
+                  setMaxDisplayCap(value);
+                }
+              }}
+              onBlur={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (isNaN(value) || value <= 0) {
+                  setCapInputValue(maxDisplayCap.toString());
+                } else if (value > 1000) {
+                  setCapInputValue('1000');
+                  setMaxDisplayCap(1000);
+                } else {
+                  setCapInputValue(value.toString());
+                  setMaxDisplayCap(value);
+                }
+              }}
+              onFocus={(e) => e.target.select()}
+            />
+            <span>%</span>
           </div>
         </div>
       </div>
 
       <div className="chart-area">
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 60, bottom: 60 }}
+            margin={{ top: 6, right: 10, bottom: 26, left: 34 }}
           >
             <CartesianGrid 
               strokeDasharray="3 3" 

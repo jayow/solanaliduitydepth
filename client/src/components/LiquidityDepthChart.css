@@ -1,30 +1,60 @@
 .liquidity-chart-container {
-  background: #0F1720;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #121923;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  padding: 16px;
+  padding: 0;
   margin-top: 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chart-header {
+  height: 44px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #9AA4B2;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.header-left-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.chart-title {
+  color: #E6EAF0;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+}
+
+.chart-meta {
+  font-size: 13px;
+  color: #9AA4B2;
+  white-space: nowrap;
+}
+
+.header-right-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .chart-area {
   background: transparent;
-  padding: 8px;
-}
-
-.chart-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.chart-header-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: #9AA4B2;
-  flex-wrap: wrap;
+  padding: 12px 14px 14px 14px;
+  flex: 1;
+  min-height: 0;
+  height: calc(100% - 44px);
 }
 
 .price-info {
