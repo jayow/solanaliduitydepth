@@ -129,12 +129,14 @@ async function getTokenList() {
         }
         console.log(`   Added ${addedCount} new tokens (${tokenMap.size} total unique tokens)`);
         
-        // If we got a good result from Jupiter (first 4 endpoints), we can stop trying others
-        // Only continue if we got very few tokens (< 50) or it's a fallback endpoint
+        // Continue trying all endpoints to get maximum token coverage
+        // Different endpoints may have different tokens, so combine them all
+        // Only skip if we've already tried all Jupiter endpoints and got good coverage
         const isJupiterEndpoint = endpoint.includes('jup.ag') || endpoint.includes('api.jup.ag');
-        if (isJupiterEndpoint && tokens.length >= 50) {
-          console.log(`✅ Got good token list from Jupiter, stopping search`);
-          break; // Stop trying other endpoints
+        const isLastJupiterEndpoint = endpoint === JUPITER_TOKEN_URL; // Last Jupiter endpoint
+        if (isLastJupiterEndpoint && tokenMap.size >= 10000) {
+          console.log(`✅ Got comprehensive token list (${tokenMap.size} tokens), skipping fallback endpoints`);
+          // Still continue to add important fallback tokens
         }
       } else {
         console.warn(`⚠️ Endpoint ${endpoint} returned empty or invalid data`);
