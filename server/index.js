@@ -475,8 +475,8 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     100000000,  // $100M
   ];
   
-  // Set a maximum calculation time (90 seconds - increased for $50M and $100M trades)
-  const MAX_CALCULATION_TIME = 90000;
+  // Set a maximum calculation time (120 seconds - increased to allow for $50M and $100M trades)
+  const MAX_CALCULATION_TIME = 120000;
   const calculationStartTime = Date.now();
 
   console.log(`\nCalculating ${isBuy ? 'BUY' : 'SELL'} depth for ${inputMint.slice(0, 8)}... -> ${outputMint.slice(0, 8)}...`);
@@ -804,6 +804,19 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       }
       // Continue to next amount - don't fail the entire request
       // Note: We skip this amount but will try the next one
+      // Log which amount we're skipping for debugging
+      console.log(`⏭️ Skipping ${formatUSD(usdAmount)} due to error, continuing to next trade size...`);
+    }
+  }
+  
+  // Log final status
+  console.log(`\n📊 Calculation complete. Processed ${depthPoints.length} of ${usdTradeSizes.length} trade sizes.`);
+  if (depthPoints.length < usdTradeSizes.length) {
+    const missingSizes = usdTradeSizes.filter(size => 
+      !depthPoints.some(point => point.tradeUsdValue === size)
+    );
+    if (missingSizes.length > 0) {
+      console.warn(`⚠️ Missing trade sizes: ${missingSizes.map(s => formatUSD(s)).join(', ')}`);
     }
   }
   
