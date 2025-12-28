@@ -85,7 +85,7 @@
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   flex: 0 0 auto;
   min-width: 320px;
   max-width: 400px;
@@ -112,6 +112,7 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   width: 100%;
+  margin: 0;
 }
 
 .status-message,
@@ -175,6 +176,7 @@
   border-radius: 12px;
   width: 100%;
   text-align: center;
+  margin: 0;
 }
 
 .loading p {
