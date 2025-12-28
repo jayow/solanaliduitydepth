@@ -482,7 +482,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   console.log(`\nCalculating ${isBuy ? 'BUY' : 'SELL'} depth for ${inputMint.slice(0, 8)}... -> ${outputMint.slice(0, 8)}...`);
   console.log(`Testing ${usdTradeSizes.length} fixed USD trade sizes:`, usdTradeSizes.map(s => formatUSD(s)).join(', '));
 
-  // First, get a baseline price from a very small trade to calculate slippage and convert USD to token amounts
+  // First, get a baseline price from a very small trade to calculate price impact and convert USD to token amounts
   let baselinePrice = null;
   const baselineAmounts = [100, 50, 10]; // Try progressively smaller amounts if rate limited
   

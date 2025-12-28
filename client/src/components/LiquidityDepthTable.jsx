@@ -3,7 +3,7 @@ import './LiquidityDepthTable.css';
 
 function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
   // Standard trade sizes to sample (in USD value, matching DeFiLlama)
-  // Extended range for stress testing slippage
+  // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $10M, $50M, $100M
   const standardTradeSizes = [
     500,        // $500
     1000,       // $1K
@@ -11,9 +11,8 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
     100000,     // $100K
     1000000,    // $1M
     10000000,   // $10M
+    50000000,   // $50M
     100000000,  // $100M
-    500000000,  // $500M
-    1000000000, // $1B (for extreme stress testing)
   ];
 
   // Process data to sample at specific trade sizes
@@ -25,7 +24,7 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
       return [];
     }
 
-    // Get the best price (smallest trade) - reference for slippage
+    // Get the best price (smallest trade) - reference for price impact
     const bestPrice = depthToUse[0]?.price || 0;
     if (bestPrice === 0) return [];
 

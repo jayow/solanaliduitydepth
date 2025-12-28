@@ -85,7 +85,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       return [];
     }
 
-    // Get the best price (smallest trade) - reference for slippage
+    // Get the best price (smallest trade) - reference for price impact
     const bestPrice = depthToUse[0]?.price || 0;
     if (bestPrice === 0) return [];
 
@@ -114,7 +114,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     // Densify the data to allow hovering at any point
     // Increased to 50 points for smoother interpolation and better hover accuracy
     return densifyData(baseData, 50);
-  }, [buyDepth, sellDepth]);
+  }, [buyDepth, sellDepth, inputToken, outputToken]);
 
   // Interpolate values between data points based on X position (tradeUsdValue)
   // Uses log-scale aware interpolation for better accuracy
