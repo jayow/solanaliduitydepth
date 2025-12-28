@@ -54,17 +54,17 @@
 
 .liquidity-table th:first-child,
 .liquidity-table td:first-child {
-  width: 12%;
+  width: 10%;
 }
 
 .liquidity-table th:nth-child(2),
 .liquidity-table td:nth-child(2) {
-  width: 18%;
+  width: 12%;
 }
 
 .liquidity-table th:nth-child(3),
 .liquidity-table td:nth-child(3) {
-  width: 18%;
+  width: 8%;
 }
 
 .liquidity-table th:nth-child(4),
@@ -74,6 +74,16 @@
 
 .liquidity-table th:nth-child(5),
 .liquidity-table td:nth-child(5) {
+  width: 8%;
+}
+
+.liquidity-table th:nth-child(6),
+.liquidity-table td:nth-child(6) {
+  width: 10%;
+}
+
+.liquidity-table th:nth-child(7),
+.liquidity-table td:nth-child(7) {
   width: 20%;
 }
 
@@ -95,10 +105,22 @@
   font-size: 0.85rem;
 }
 
+.trade-token .token-symbol {
+  color: #9AA4B2;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
 .receive-amount .token-amount {
   font-weight: 500;
   color: #22C55E;
   font-size: 0.85rem;
+}
+
+.receive-token .token-symbol {
+  color: #9AA4B2;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 .receive-usd .usd-value {

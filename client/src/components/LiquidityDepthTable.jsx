@@ -140,7 +140,9 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
             <tr>
               <th>Trade Size (USD)</th>
               <th>Trade Amount</th>
+              <th>Token</th>
               <th>Receive Amount</th>
+              <th>Token</th>
               <th>Receive (USD)</th>
               <th>Price</th>
               <th>Price Impact</th>
@@ -153,10 +155,16 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
                   <span className="usd-value-primary">{formatCurrency(row.tradeUsdValue)}</span>
                 </td>
                 <td className="trade-amount">
-                  <span className="token-amount">{formatTokenAmount(row.tradeAmount)} {inputToken?.symbol}</span>
+                  <span className="token-amount">{formatTokenAmount(row.tradeAmount)}</span>
+                </td>
+                <td className="trade-token">
+                  <span className="token-symbol">{inputToken?.symbol}</span>
                 </td>
                 <td className="receive-amount">
-                  <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
+                  <span className="token-amount">{formatTokenAmount(row.receiveAmount)}</span>
+                </td>
+                <td className="receive-token">
+                  <span className="token-symbol">{outputToken?.symbol}</span>
                 </td>
                 <td className="receive-usd">
                   <span className="usd-value">{formatCurrency(row.receiveUsdValue)}</span>
