@@ -76,30 +76,37 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 13px;
   color: #9AA4B2;
-  flex-wrap: wrap;
+  font-weight: 500;
 }
 
 .cap-control label {
   font-weight: 500;
   color: #9AA4B2;
+  font-size: 13px;
 }
 
 .cap-control input {
   background: #0E141B;
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #E6EAF0;
-  padding: 0.375rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  width: 60px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 50px;
+  text-align: center;
   transition: all 150ms ease-out;
 }
 
 .cap-control input:focus {
   outline: none;
   border-color: rgba(255, 255, 255, 0.12);
+}
+
+.cap-control span {
+  font-size: 13px;
+  color: #9AA4B2;
 }
 
 .chart-footer {
