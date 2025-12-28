@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -11,6 +11,8 @@ import {
 import './LiquidityDepthChart.css';
 
 function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
+  const [maxDisplayCap, setMaxDisplayCap] = useState(15); // Default 15% cap
+  const [capInputValue, setCapInputValue] = useState('15'); // Local state for input field
   // Format currency with K/M/B suffixes
   const formatCurrency = (amount) => {
     if (amount === undefined || amount === null || isNaN(amount)) return 'N/A';
@@ -55,11 +57,13 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         const tradeUsdValue = Math.pow(10, logX);
         
         // Linear interpolation for other values
+        const interpolatedPriceImpact = point1.priceImpact + (point2.priceImpact - point1.priceImpact) * ratio;
         const interpolated = {
           tradeUsdValue,
           tradeAmount: point1.tradeAmount + (point2.tradeAmount - point1.tradeAmount) * ratio,
           receiveAmount: point1.receiveAmount + (point2.receiveAmount - point1.receiveAmount) * ratio,
-          slippage: point1.slippage + (point2.slippage - point1.slippage) * ratio,
+          priceImpact: Math.round(interpolatedPriceImpact), // Round to whole number for cleaner display
+          slippage: Math.round(point1.slippage + (point2.slippage - point1.slippage) * ratio), // Keep for compatibility, also rounded
           price: point1.price + (point2.price - point1.price) * ratio,
         };
         
@@ -81,16 +85,18 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       return [];
     }
 
-    // Get the best price (smallest trade) - reference for slippage
+    // Get the best price (smallest trade) - reference for price impact
     const bestPrice = depthToUse[0]?.price || 0;
     if (bestPrice === 0) return [];
 
-    // Calculate slippage for each point and use tradeUsdValue from backend if available
+    // Calculate price impact for each point and use tradeUsdValue from backend if available
     const baseData = depthToUse.map(point => {
-      // Use slippage from backend if available, otherwise calculate it
-      const slippage = point.slippage !== undefined 
-        ? point.slippage 
-        : (bestPrice > 0 ? Math.abs((bestPrice - point.price) / bestPrice) * 100 : 0);
+      // Use priceImpact from backend if available, fallback to slippage for backward compatibility
+      const priceImpact = point.priceImpact !== undefined 
+        ? point.priceImpact 
+        : (point.slippage !== undefined 
+          ? point.slippage 
+          : (bestPrice > 0 ? Math.abs((bestPrice - point.price) / bestPrice) * 100 : 0));
       
       // Use tradeUsdValue from backend if available, otherwise calculate it
       const tradeUsdValue = point.tradeUsdValue || (point.amount * bestPrice);
@@ -98,15 +104,17 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       return {
         tradeAmount: point.amount,
         tradeUsdValue,
-        slippage,
+        priceImpact, // Primary: Price Impact
+        slippage: point.slippage || priceImpact, // Keep for backward compatibility
         receiveAmount: point.outputAmount,
         price: point.price,
       };
-    }).filter(point => point.tradeUsdValue > 0 && point.slippage >= 0);
+    }).filter(point => point.tradeUsdValue > 0 && point.priceImpact >= 0);
     
     // Densify the data to allow hovering at any point
-    return densifyData(baseData, 15); // 15 interpolated points between each pair
-  }, [buyDepth, sellDepth]);
+    // Increased to 50 points for smoother interpolation and better hover accuracy
+    return densifyData(baseData, 50);
+  }, [buyDepth, sellDepth, inputToken, outputToken]);
 
   // Interpolate values between data points based on X position (tradeUsdValue)
   // Uses log-scale aware interpolation for better accuracy
@@ -160,11 +168,13 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     const ratio = (logX - logX1) / (logX2 - logX1);
     
     // Interpolate all values
+    const interpolatedPriceImpact = lowerPoint.priceImpact + (upperPoint.priceImpact - lowerPoint.priceImpact) * ratio;
     return {
       tradeUsdValue: xValue,
       tradeAmount: lowerPoint.tradeAmount + (upperPoint.tradeAmount - lowerPoint.tradeAmount) * ratio,
       receiveAmount: lowerPoint.receiveAmount + (upperPoint.receiveAmount - lowerPoint.receiveAmount) * ratio,
-      slippage: lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio,
+      priceImpact: Math.round(interpolatedPriceImpact), // Round to whole number for cleaner display
+      slippage: Math.round(lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio), // Keep for compatibility, also rounded
       price: lowerPoint.price + (upperPoint.price - lowerPoint.price) * ratio,
     };
   };
@@ -175,7 +185,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
       
       if (!data) return null;
       
-      const slippageColor = data.slippage > 5 ? '#ef4444' : data.slippage > 1 ? '#f59e0b' : '#10b981';
+      const priceImpact = data.priceImpact !== undefined ? data.priceImpact : data.slippage;
+      const priceImpactColor = priceImpact > 5 ? '#ef4444' : priceImpact > 1 ? '#f59e0b' : '#10b981';
       
       return (
         <div className="custom-tooltip">
@@ -203,9 +214,9 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               </span>
             </div>
             <div className="tooltip-row">
-              <span className="tooltip-label">Slippage:</span>
-              <span className="tooltip-value" style={{ color: slippageColor, fontWeight: 'bold' }}>
-                {data.slippage?.toFixed(2) || '0.00'}%
+              <span className="tooltip-label">Price Impact:</span>
+              <span className="tooltip-value" style={{ color: priceImpactColor, fontWeight: 'bold' }}>
+                {priceImpact?.toFixed(2) || '0.00'}%
               </span>
             </div>
           </div>
@@ -223,17 +234,92 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     );
   }
 
-  const maxSlippage = Math.max(...chartData.map(d => d.slippage || 0));
+  // Find the maximum trade size that fits within the cap
+  const pointsWithinCap = chartData.filter(d => (d.priceImpact || d.slippage || 0) <= maxDisplayCap);
+  const maxTradeValueWithinCap = pointsWithinCap.length > 0
+    ? Math.max(...pointsWithinCap.map(d => d.tradeUsdValue || 0))
+    : 0;
+
+  const maxPriceImpact = Math.max(...chartData.map(d => d.priceImpact || d.slippage || 0));
   const maxTradeValue = Math.max(...chartData.map(d => d.tradeUsdValue || 0));
   const minTradeValue = Math.min(...chartData.map(d => d.tradeUsdValue || 0));
+
+  // Check if data exceeds the cap
+  const hasDataAboveCap = maxPriceImpact > maxDisplayCap;
 
   return (
     <div className="liquidity-chart-container">
       <div className="chart-header">
-        <h2>Slippage</h2>
+        <h2>Price Impact</h2>
         <div className="slippage-range">
-          <span>Min <strong>0%</strong></span>
-          <span>Max <strong>{Math.min(maxSlippage, 100).toFixed(1)}%</strong></span>
+          <span>Y-axis: <strong>0% - {maxDisplayCap}%</strong></span>
+          {maxTradeValueWithinCap > 0 ? (
+            <span>
+              Max trade within cap: <strong>{formatCurrency(maxTradeValueWithinCap)}</strong>
+            </span>
+          ) : (
+            <span style={{ color: '#ef4444' }}>
+              No trades fit within {maxDisplayCap}% cap
+            </span>
+          )}
+          {hasDataAboveCap && (
+            <span style={{ color: '#ef4444', fontSize: '0.85rem', marginLeft: '0.5rem' }}>
+              ⚠️ Some data exceeds cap (max: {maxPriceImpact.toFixed(1)}%)
+            </span>
+          )}
+        </div>
+        <div className="cap-control">
+          <label htmlFor="impact-cap" style={{ fontSize: '0.85rem', marginRight: '0.5rem' }}>
+            Display Cap:
+          </label>
+          <input
+            id="impact-cap"
+            type="number"
+            min="1"
+            max="1000"
+            step="1"
+            value={capInputValue}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              // Update local state immediately to allow typing
+              setCapInputValue(inputValue);
+              
+              // Only update the actual cap if it's a valid number
+              const value = parseInt(inputValue, 10);
+              if (!isNaN(value) && value > 0 && value <= 1000) {
+                setMaxDisplayCap(value);
+              }
+            }}
+            onBlur={(e) => {
+              // On blur, validate and fix the value
+              const value = parseInt(e.target.value, 10);
+              if (isNaN(value) || value <= 0) {
+                // Reset to current cap if invalid
+                setCapInputValue(maxDisplayCap.toString());
+              } else if (value > 1000) {
+                // Cap at 1000 if too high
+                setCapInputValue('1000');
+                setMaxDisplayCap(1000);
+              } else {
+                // Ensure it matches the actual cap
+                setCapInputValue(value.toString());
+                setMaxDisplayCap(value);
+              }
+            }}
+            onFocus={(e) => {
+              // Select all text on focus for easy editing
+              e.target.select();
+            }}
+            style={{
+              width: '60px',
+              padding: '0.25rem 0.5rem',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '0.85rem',
+              textAlign: 'center'
+            }}
+          />
+          <span style={{ fontSize: '0.85rem', marginLeft: '0.25rem' }}>%</span>
         </div>
       </div>
 
@@ -254,14 +340,21 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
               return `$${value.toFixed(0)}`;
             }}
-            label={{ value: 'Tokens', position: 'insideBottom', offset: -5 }}
+            label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: -5 }}
             stroke="#666"
           />
           <YAxis
-            domain={[0, Math.min(Math.max(maxSlippage * 1.1, 10), 100)]}
-            label={{ value: 'Slippage', angle: -90, position: 'insideLeft' }}
+            domain={(dataMin, dataMax) => [0, maxDisplayCap]}
+            type="number"
+            allowDataOverflow={true}
+            padding={{ top: 0, bottom: 0 }}
+            label={{ value: 'Price Impact', angle: -90, position: 'insideLeft' }}
             stroke="#666"
-            tickFormatter={(value) => `${value}%`}
+            tickFormatter={(value) => {
+              // Only show ticks up to the cap
+              if (value > maxDisplayCap) return '';
+              return `${value}%`;
+            }}
           />
           <Tooltip 
             content={<CustomTooltip />}
@@ -273,7 +366,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
           />
           <Line
             type="monotone"
-            dataKey="slippage"
+            dataKey="priceImpact"
             stroke="#10b981"
             strokeWidth={3}
             dot={false}

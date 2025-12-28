@@ -23,7 +23,16 @@ A DeFiLlama-style liquidity depth visualization for Solana using Jupiter's aggre
 npm run install-all
 ```
 
-2. Start the development server:
+2. Set up environment variables:
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your Jupiter API key
+# Get your API key from: https://station.jup.ag/docs/apis/api-keys
+```
+
+3. Start the development server:
 ```bash
 npm run dev
 ```
@@ -31,6 +40,8 @@ npm run dev
 This will start:
 - Backend server on `http://localhost:3001`
 - Frontend dev server on `http://localhost:3000`
+
+**Note**: The Jupiter API key is required for higher rate limits. Without it, the API will use the free tier with stricter rate limits.
 
 ## Project Structure
 

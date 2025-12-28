@@ -3,7 +3,7 @@ import './LiquidityDepthTable.css';
 
 function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
   // Standard trade sizes to sample (in USD value, matching DeFiLlama)
-  // Extended range for stress testing slippage
+  // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $10M, $50M, $100M
   const standardTradeSizes = [
     500,        // $500
     1000,       // $1K
@@ -11,9 +11,8 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
     100000,     // $100K
     1000000,    // $1M
     10000000,   // $10M
+    50000000,   // $50M
     100000000,  // $100M
-    500000000,  // $500M
-    1000000000, // $1B (for extreme stress testing)
   ];
 
   // Process data to sample at specific trade sizes
@@ -25,7 +24,7 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
       return [];
     }
 
-    // Get the best price (smallest trade) - reference for slippage
+    // Get the best price (smallest trade) - reference for price impact
     const bestPrice = depthToUse[0]?.price || 0;
     if (bestPrice === 0) return [];
 
@@ -51,10 +50,12 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
 
       if (!closestPoint) return;
 
-      // Use slippage from backend if available, otherwise calculate it
-      const slippage = closestPoint.slippage !== undefined 
-        ? closestPoint.slippage 
-        : (bestPrice > 0 ? Math.abs((bestPrice - closestPoint.price) / bestPrice) * 100 : 0);
+      // Use priceImpact from backend if available, fallback to slippage for backward compatibility
+      const priceImpact = closestPoint.priceImpact !== undefined 
+        ? closestPoint.priceImpact 
+        : (closestPoint.slippage !== undefined 
+          ? closestPoint.slippage 
+          : (bestPrice > 0 ? Math.abs((bestPrice - closestPoint.price) / bestPrice) * 100 : 0));
 
       // Get actual USD value from backend or calculate it
       const actualTradeUsdValue = closestPoint.tradeUsdValue || (closestPoint.amount * bestPrice);
@@ -83,7 +84,8 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
         receiveAmount: closestPoint.outputAmount,
         receiveUsdValue,
         price: closestPoint.price,
-        slippage,
+        priceImpact, // Primary: Price Impact
+        slippage: closestPoint.slippage || priceImpact, // Keep for backward compatibility
       });
     });
 
@@ -151,12 +153,12 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
                   <span className="token-amount">{formatTokenAmount(row.receiveAmount)} {outputToken?.symbol}</span>
                   <span className="via-label"> via Jupiter</span>
                   <span className="slippage-badge" style={{
-                    color: row.slippage > 5 ? '#ef4444' : row.slippage > 1 ? '#f59e0b' : '#10b981',
+                    color: row.priceImpact > 5 ? '#ef4444' : row.priceImpact > 1 ? '#f59e0b' : '#10b981',
                     marginLeft: '0.5rem',
                     fontSize: '0.85rem',
                     fontWeight: 600
                   }}>
-                    {row.slippage.toFixed(2)}% slippage
+                    {row.priceImpact.toFixed(2)}% price impact
                   </span>
                 </td>
               </tr>
