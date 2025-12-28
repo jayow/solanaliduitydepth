@@ -176,7 +176,7 @@
 
 .liquidity-table th {
   padding: 0.5rem 0;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
   color: #9AA4B2;
   font-size: 0.65rem;
@@ -197,6 +197,7 @@
   white-space: nowrap;
   vertical-align: middle;
   line-height: 1.3;
+  text-align: center;
 }
 
 .liquidity-table tbody tr {
