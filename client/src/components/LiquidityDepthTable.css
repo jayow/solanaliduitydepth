@@ -108,11 +108,11 @@
 .trade-amount .usd-value-primary {
   font-weight: 600;
   color: #FFFFFF;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 .trade-amount .token-amount-secondary {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #9AA4B2;
   font-weight: 400;
 }
@@ -121,12 +121,12 @@
 .receive-amount .token-amount {
   font-weight: 600;
   color: #E6EAF0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .trade-amount .usd-value,
 .receive-amount .usd-value {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #9AA4B2;
   font-weight: 400;
 }
@@ -180,15 +180,15 @@
 }
 
 .table-footer {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .info-note {
   background: #0F1620;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 8px;
   border-left: 3px solid #9AA4B2;
 }
@@ -196,7 +196,7 @@
 .info-note p {
   margin: 0;
   color: #9AA4B2;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .no-data {
