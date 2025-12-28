@@ -307,7 +307,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
-            margin={{ top: 6, right: 10, bottom: 26, left: 34 }}
+            margin={{ top: 6, right: 10, bottom: 34, left: 44 }}
           >
             <CartesianGrid 
               strokeDasharray="3 6" 
@@ -330,7 +330,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               stroke="rgba(255,255,255,0.10)"
               tick={{ fill: '#7F8A9A', fontSize: 11 }}
               tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
-              minTickGap={26}
+              minTickGap={28}
               interval="preserveStartEnd"
               tickMargin={6}
             />
@@ -391,7 +391,9 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
           </LineChart>
         </ResponsiveContainer>
         <div className="axis-label-overlay">
-          <div className="y-axis-label">Price Impact (%)</div>
+          <div className="y-axis-label">
+            <span>Price Impact (%)</span>
+          </div>
           <div className="x-axis-label">Trade Size (USD)</div>
         </div>
       </div>
