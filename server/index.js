@@ -454,6 +454,7 @@ async function getTokenDecimals(mintAddress) {
 // Calculate liquidity depth by getting quotes at fixed USD amounts
 async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   const depthPoints = [];
+  const errors = []; // Track errors for debugging
   
   // Get token decimals
   const inputDecimals = await getTokenDecimals(inputMint);
@@ -830,6 +831,15 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       if (usdAmount >= 50000000) {
         console.error(`🚨 WARNING: Failed to get quote for ${formatUSD(usdAmount)} - this is a critical data point!`);
       }
+      
+      // Store error for debugging
+      errors.push({
+        tradeSize: usdAmount,
+        tradeSizeFormatted: formatUSD(usdAmount),
+        error: errorMsg,
+        statusCode: statusCode,
+        timestamp: new Date().toISOString()
+      });
     }
   }
   
