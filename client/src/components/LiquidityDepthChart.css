@@ -83,7 +83,15 @@
   left: calc(var(--plotLeft));
   right: calc(var(--plotRight));
   bottom: 2px;
+  display: block;
+  width: 100%;
   text-align: center;
+  white-space: nowrap;
+  letter-spacing: 0px;
+  word-spacing: 0px;
+  text-rendering: auto;
+  font-kerning: normal;
+  font-variant-ligatures: normal;
   color: #7F8A9A;
   font-size: 12px;
   font-weight: 500;
