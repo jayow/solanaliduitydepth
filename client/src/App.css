@@ -8,15 +8,17 @@
   color: #E6EAF0;
   margin-bottom: 1.5rem;
   padding: 1rem 0 0.5rem 0;
-  padding-left: 0;
   margin-left: 0;
+  padding-left: 0;
   position: relative;
 }
 
 .app-header h1,
-.app-header p {
+.app-header p,
+.app-header .app-credit {
   margin-left: 0;
   padding-left: 0;
+  text-align: left;
 }
 
 .app-header h1 {
