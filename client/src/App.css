@@ -51,10 +51,10 @@
   align-items: center;
   color: #9AA4B2;
   font-size: 0.9rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   padding: 0.75rem 1rem;
-  background: #121923;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0F1620;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
 }
 

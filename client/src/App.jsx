@@ -237,21 +237,21 @@ function App() {
           </div>
         ) : (
           <>
-            {tokens.length > 0 && (
-              <div className="token-count-info">
-                <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>
-                <button 
-                  className="refresh-tokens-btn" 
-                  onClick={() => fetchTokens(true)}
-                  title="Refresh token list from Jupiter"
-                >
-                  🔄 Refresh
-                </button>
-              </div>
-            )}
             {!loading && inputToken && outputToken ? (
               <div className="main-content-layout">
                 <div className="swap-card">
+                  {tokens.length > 0 && (
+                    <div className="token-count-info">
+                      <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>
+                      <button 
+                        className="refresh-tokens-btn" 
+                        onClick={() => fetchTokens(true)}
+                        title="Refresh token list from Jupiter"
+                      >
+                        🔄 Refresh
+                      </button>
+                    </div>
+                  )}
                   <div className="token-selector-container">
                     <TokenSelector
                       label="Input Token"
@@ -308,6 +308,18 @@ function App() {
               </div>
             ) : (
               <div className="swap-card">
+                {tokens.length > 0 && (
+                  <div className="token-count-info">
+                    <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>
+                    <button 
+                      className="refresh-tokens-btn" 
+                      onClick={() => fetchTokens(true)}
+                      title="Refresh token list from Jupiter"
+                    >
+                      🔄 Refresh
+                    </button>
+                  </div>
+                )}
                 <div className="token-selector-container">
                   <TokenSelector
                     label="Input Token"
