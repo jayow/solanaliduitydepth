@@ -1401,7 +1401,7 @@ app.get('/api/test-quote', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, 'localhost', () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📡 Jupiter API: ${JUPITER_QUOTE_URL} (with API key)`);
   console.log(`🔗 Test endpoint: http://localhost:${PORT}/api/jupiter-status`);
