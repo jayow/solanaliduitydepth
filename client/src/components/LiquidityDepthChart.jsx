@@ -311,7 +311,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
             margin={{ top: 6, right: 10, bottom: 26, left: 34 }}
           >
             <CartesianGrid 
-              strokeDasharray="3 3" 
+              strokeDasharray="3 6" 
               stroke="rgba(255,255,255,0.06)" 
               vertical={false}
             />
@@ -327,8 +327,9 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
                 return `$${value.toFixed(0)}`;
               }}
               label={{ value: 'Trade Size (USD)', position: 'insideBottom', offset: -5 }}
-              stroke="#7F8A9A"
+              stroke="rgba(255,255,255,0.08)"
               tick={{ fill: '#7F8A9A', fontSize: 12 }}
+              tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
             />
             <YAxis
               domain={(dataMin, dataMax) => [0, maxDisplayCap]}
@@ -336,8 +337,9 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
               allowDataOverflow={true}
               padding={{ top: 0, bottom: 0 }}
               label={{ value: 'Price Impact (%)', angle: -90, position: 'insideLeft' }}
-              stroke="#7F8A9A"
+              stroke="rgba(255,255,255,0.08)"
               tick={{ fill: '#7F8A9A', fontSize: 12 }}
+              tickLine={{ stroke: 'rgba(255,255,255,0.06)' }}
               tickFormatter={(value) => {
                 if (value > maxDisplayCap) return '';
                 return `${value}%`;
