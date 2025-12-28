@@ -57,12 +57,13 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
         const tradeUsdValue = Math.pow(10, logX);
         
         // Linear interpolation for other values
+        const interpolatedPriceImpact = point1.priceImpact + (point2.priceImpact - point1.priceImpact) * ratio;
         const interpolated = {
           tradeUsdValue,
           tradeAmount: point1.tradeAmount + (point2.tradeAmount - point1.tradeAmount) * ratio,
           receiveAmount: point1.receiveAmount + (point2.receiveAmount - point1.receiveAmount) * ratio,
-          priceImpact: point1.priceImpact + (point2.priceImpact - point1.priceImpact) * ratio,
-          slippage: point1.slippage + (point2.slippage - point1.slippage) * ratio, // Keep for compatibility
+          priceImpact: Math.round(interpolatedPriceImpact), // Round to whole number for cleaner display
+          slippage: Math.round(point1.slippage + (point2.slippage - point1.slippage) * ratio), // Keep for compatibility, also rounded
           price: point1.price + (point2.price - point1.price) * ratio,
         };
         
@@ -111,7 +112,8 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     }).filter(point => point.tradeUsdValue > 0 && point.priceImpact >= 0);
     
     // Densify the data to allow hovering at any point
-    return densifyData(baseData, 15); // 15 interpolated points between each pair
+    // Increased to 50 points for smoother interpolation and better hover accuracy
+    return densifyData(baseData, 50);
   }, [buyDepth, sellDepth]);
 
   // Interpolate values between data points based on X position (tradeUsdValue)
@@ -166,12 +168,13 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     const ratio = (logX - logX1) / (logX2 - logX1);
     
     // Interpolate all values
+    const interpolatedPriceImpact = lowerPoint.priceImpact + (upperPoint.priceImpact - lowerPoint.priceImpact) * ratio;
     return {
       tradeUsdValue: xValue,
       tradeAmount: lowerPoint.tradeAmount + (upperPoint.tradeAmount - lowerPoint.tradeAmount) * ratio,
       receiveAmount: lowerPoint.receiveAmount + (upperPoint.receiveAmount - lowerPoint.receiveAmount) * ratio,
-      priceImpact: lowerPoint.priceImpact + (upperPoint.priceImpact - lowerPoint.priceImpact) * ratio,
-      slippage: lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio, // Keep for compatibility
+      priceImpact: Math.round(interpolatedPriceImpact), // Round to whole number for cleaner display
+      slippage: Math.round(lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio), // Keep for compatibility, also rounded
       price: lowerPoint.price + (upperPoint.price - lowerPoint.price) * ratio,
     };
   };
