@@ -65,9 +65,13 @@ async function getTokenList() {
 
   // Try multiple Jupiter token endpoints to get all available tokens
   // Order: Most reliable first
+  // NOTE: Jupiter's token list endpoints only include tokens that meet liquidity requirements
+  // (at least $500 liquidity, <30% price impact). Tokens like JUP, USX, eUSX may be routable
+  // but not in the official list, so we manually add them via importantTokens.
+  // API plan (free vs paid) does NOT affect token list availability - only rate limits.
   const tokenEndpoints = [
-    'https://token.jup.ag/all',                    // Jupiter's comprehensive token list (primary)
-    'https://token.jup.ag/strict',                // Jupiter's strict token list (verified tokens)
+    'https://token.jup.ag/all',                    // Jupiter's comprehensive token list (primary) - includes all routable tokens
+    'https://token.jup.ag/strict',                // Jupiter's strict token list (verified tokens only - meets liquidity requirements)
     'https://tokens.jup.ag/all',                  // Alternative Jupiter endpoint
     'https://api.jup.ag/tokens/v1/all',           // Jupiter API v1 endpoint
     JUPITER_TOKEN_URL,                            // Lite API endpoint
