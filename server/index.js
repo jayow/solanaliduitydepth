@@ -1662,6 +1662,13 @@ app.get('/api/liquidity-depth', async (req, res) => {
     console.log(`Errors captured: ${debugErrors.length}`);
     console.log(`===========================\n`);
     
+    // Check if token is unsupported by Jupiter
+    const hasInvalidMintError = debugErrors.some(err => 
+      err.error?.includes('Invalid inputMint') || 
+      err.error?.includes('Invalid mint') ||
+      err.errorCode === 'INVALID_INPUT_MINT'
+    );
+    
     if (depth.length === 0) {
       console.warn('⚠️ No depth points collected. This could be due to:');
       console.warn('  1. Rate limiting from Jupiter API');
@@ -1684,7 +1691,8 @@ app.get('/api/liquidity-depth', async (req, res) => {
         pointsCount: depth.length,
         calculationTime: `${duration}ms`,
         timestamp: new Date().toISOString(),
-        warning: depth.length === 0 ? 'No liquidity data collected. Check server logs for details.' : null
+        warning: depth.length === 0 ? 'No liquidity data collected. Check server logs for details.' : null,
+        tokenUnsupported: hasInvalidMintError
       },
       debug: {
         logs: debugLogs,

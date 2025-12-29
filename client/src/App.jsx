@@ -140,6 +140,11 @@ function App() {
       const buyDepthData = buyResponse.data.depth || [];
       const sellDepthData = sellResponse.data.depth || [];
       
+      // Check if token is unsupported by Jupiter
+      const buyUnsupported = buyResponse.data.metadata?.tokenUnsupported || false;
+      const sellUnsupported = sellResponse.data.metadata?.tokenUnsupported || false;
+      const isUnsupported = buyUnsupported || sellUnsupported;
+      
       // Store baseline price if available (spot price before price impact)
       // Use sell baseline price (selling input token) as primary, fallback to buy
       const sellBaselinePrice = sellResponse.data.baselinePrice;
@@ -151,8 +156,14 @@ function App() {
       setBaselinePrice(priceToUse);
       
       if (buyDepthData.length === 0 && sellDepthData.length === 0) {
-        setStatusMessage('No liquidity data returned. Check server logs for details.');
-        setError('No liquidity data available. The API may be rate-limited or the pair may have no liquidity.');
+        if (isUnsupported) {
+          const unsupportedToken = buyUnsupported ? outputToken?.symbol : inputToken?.symbol;
+          setStatusMessage(`Token "${unsupportedToken}" is not supported by Jupiter API.`);
+          setError(`The token "${unsupportedToken}" is not supported by Jupiter. Jupiter cannot route trades for this token.`);
+        } else {
+          setStatusMessage('No liquidity data returned. Check server logs for details.');
+          setError('No liquidity data available. The API may be rate-limited or the pair may have no liquidity.');
+        }
       } else {
         const totalPoints = buyDepthData.length + sellDepthData.length;
         setStatusMessage(`Loaded ${totalPoints} data points (${buyDepthData.length} buy, ${sellDepthData.length} sell)`);
