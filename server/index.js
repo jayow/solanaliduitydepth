@@ -774,12 +774,39 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         }
         
         // Generate smaller amounts to try, starting from maxSafeUsdAmount down
+        // But also ensure we test amounts that represent the full range up to the safe limit
         const smallerAmounts = [];
-        let testAmount = Math.min(usdAmount, maxSafeUsdAmount * 0.9); // Start at 90% of max safe
-        while (testAmount >= 500 && smallerAmounts.length < 20) {
-          smallerAmounts.push(Math.floor(testAmount));
-          testAmount = testAmount * 0.8; // Reduce by 20% each time
+        
+        // Start from the maximum safe amount and work down
+        // But also try to cover the range from current trade size down to previous successful trade size
+        let startAmount = Math.min(usdAmount, maxSafeUsdAmount * 0.95); // Start at 95% of max safe
+        let previousTradeSize = 0;
+        
+        // Find the previous trade size that was successfully tested
+        const sortedPoints = [...depthPoints].sort((a, b) => b.tradeUsdValue - a.tradeUsdValue);
+        if (sortedPoints.length > 0) {
+          previousTradeSize = sortedPoints[0].tradeUsdValue;
         }
+        
+        // Generate amounts from startAmount down to max(previousTradeSize, 500)
+        // This ensures we test the full range up to MAX_SAFE_INTEGER
+        let testAmount = startAmount;
+        const minAmount = Math.max(previousTradeSize * 1.1, 500); // Test at least 10% above previous, or $500 minimum
+        
+        while (testAmount >= minAmount && smallerAmounts.length < 30) {
+          smallerAmounts.push(Math.floor(testAmount));
+          // Reduce by smaller increments to get better coverage
+          if (testAmount > 1000000) {
+            testAmount = testAmount * 0.9; // 10% reduction for large amounts
+          } else if (testAmount > 100000) {
+            testAmount = testAmount * 0.85; // 15% reduction for medium amounts
+          } else {
+            testAmount = testAmount * 0.8; // 20% reduction for small amounts
+          }
+        }
+        
+        // Sort amounts descending so we try largest first (to find maximum)
+        smallerAmounts.sort((a, b) => b - a);
         
         if (smallerAmounts.length > 0) {
           console.log(`   🔄 Trying ${smallerAmounts.length} smaller amounts: ${smallerAmounts.map(s => formatUSD(s)).join(', ')}`);
