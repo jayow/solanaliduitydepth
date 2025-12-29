@@ -1201,10 +1201,10 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           // For $500+, try: 450, 400, 350, 300, 250, 200, 150, 100
           smallerAmounts = [450, 400, 350, 300, 250, 200, 150, 100];
         }
-          
-          // Track the maximum working amount found so we can search upward from it
-          let maxWorkingAmount = 0;
-          let foundWorkingAmount = false;
+        
+        // Track the maximum working amount found so we can search upward from it
+        let maxWorkingAmount = 0;
+        let foundWorkingAmount = false;
           
           for (const smallerAmount of smallerAmounts) {
             // Don't break early - continue searching to find the maximum working amount
