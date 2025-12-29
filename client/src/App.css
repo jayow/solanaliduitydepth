@@ -108,7 +108,7 @@
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 18px;
   margin-top: 0;
 }
 
@@ -133,7 +133,6 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   width: 100%;
-  margin: 0;
 }
 
 .status-message,
@@ -229,7 +228,6 @@
 }
 
 .calculate-button-container {
-  margin-top: 18px;
   width: 100%;
 }
 
