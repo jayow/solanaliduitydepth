@@ -814,33 +814,44 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(`✅ Using first successful quote as baseline price: ${baselinePrice.toFixed(6)}`);
         }
         
-        // Calculate price impact ourselves using baseline price
-        // NOTE: Jupiter's API priceImpactPct doesn't match their frontend calculation
+        // Calculate price impact to match Jupiter frontend calculation
+        // NOTE: Jupiter's API priceImpactPct doesn't match their frontend display
         // Jupiter frontend calculates: (expected_output - actual_output) / expected_output * 100
-        // Where expected_output = trade_amount * spot_price
-        // We'll calculate it the same way Jupiter's frontend does for accuracy
+        // Where expected_output is based on spot price (baseline price)
         let priceImpact = 0;
         
         if (baselinePrice && baselinePrice > 0) {
           // Calculate expected output based on baseline (spot) price
-          // For buy orders: expected_output = input_amount * baseline_price
-          // For sell orders: expected_output = input_amount * baseline_price
-          const expectedOutput = isBuy 
-            ? inputAmountReadable * baselinePrice  // Buying: input USDC * price = expected tokens
-            : inputAmountReadable * baselinePrice;  // Selling: input tokens * price = expected USDC
+          // baselinePrice = output_per_input (e.g., USDC per token or tokens per USDC)
+          let expectedOutput;
           
-          // Actual output we're getting
+          if (isBuy) {
+            // Buying tokens with USDC
+            // Input: USDC amount (inputAmountReadable)
+            // Baseline price: tokens per USDC (e.g., 5 tokens per USDC)
+            // Expected output: USDC amount * tokens_per_USDC = tokens we should get
+            expectedOutput = inputAmountReadable * baselinePrice;
+          } else {
+            // Selling tokens to get USDC
+            // Input: token amount (inputAmountReadable)
+            // Baseline price: USDC per token (e.g., 0.2 USDC per token)
+            // Expected output: token amount * USDC_per_token = USDC we should get
+            expectedOutput = inputAmountReadable * baselinePrice;
+          }
+          
+          // Actual output we're getting from the quote
           const actualOutput = outputAmountReadable;
           
           // Price impact = (expected - actual) / expected * 100
           // This matches Jupiter frontend calculation
-          if (expectedOutput > 0) {
+          if (expectedOutput > 0 && actualOutput > 0) {
             priceImpact = Math.abs((expectedOutput - actualOutput) / expectedOutput) * 100;
-            console.log(`📊 Calculated price impact: ${priceImpact.toFixed(2)}% (expected: ${formatAmount(expectedOutput)}, actual: ${formatAmount(actualOutput)}, baseline: ${baselinePrice.toFixed(6)})`);
+            console.log(`📊 Price impact: ${priceImpact.toFixed(2)}% (expected: ${formatAmount(expectedOutput)}, actual: ${formatAmount(actualOutput)}, baseline: ${baselinePrice.toFixed(6)})`);
           } else {
-            // Fallback to price-based calculation if expected output is invalid
-            priceImpact = Math.abs((price - baselinePrice) / baselinePrice) * 100;
-            console.log(`📊 Calculated price impact (fallback): ${priceImpact.toFixed(2)}%`);
+            // Fallback to price-based calculation if amounts are invalid
+            const executionPrice = outputAmountReadable / inputAmountReadable;
+            priceImpact = Math.abs((executionPrice - baselinePrice) / baselinePrice) * 100;
+            console.log(`📊 Price impact (fallback): ${priceImpact.toFixed(2)}%`);
           }
         } else {
           // No baseline price available - try using Jupiter's priceImpactPct as fallback
