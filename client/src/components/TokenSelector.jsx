@@ -180,8 +180,29 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
       >
         {selectedToken ? (
           <div className="selected-token">
-            <span className="token-symbol">{selectedToken.symbol}</span>
-            <span className="token-name">{selectedToken.name}</span>
+            <div className="selected-token-left">
+              {(selectedToken.icon || selectedToken.logoURI || selectedToken.logoUri || selectedToken.image) ? (
+                <img 
+                  src={selectedToken.icon || selectedToken.logoURI || selectedToken.logoUri || selectedToken.image} 
+                  alt={selectedToken.symbol || selectedToken.name}
+                  className="selected-token-icon"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className="selected-token-icon-placeholder"
+                style={{ display: (selectedToken.icon || selectedToken.logoURI || selectedToken.logoUri || selectedToken.image) ? 'none' : 'flex' }}
+              >
+                {selectedToken.symbol?.charAt(0) || '?'}
+              </div>
+              <div className="selected-token-info">
+                <span className="token-symbol">{selectedToken.symbol}</span>
+                <span className="token-name">{selectedToken.name}</span>
+              </div>
+            </div>
           </div>
         ) : (
           <span className="placeholder">Select token</span>
