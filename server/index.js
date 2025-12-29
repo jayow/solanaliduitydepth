@@ -778,8 +778,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         const smallerAmounts = [];
         
         // Start from the maximum safe amount and work down
-        // But also try to cover the range from current trade size down to previous successful trade size
-        let startAmount = Math.min(usdAmount, maxSafeUsdAmount * 0.95); // Start at 95% of max safe
+        // IMPORTANT: Always start from maxSafeUsdAmount, not usdAmount, because usdAmount already exceeds MAX_SAFE_INTEGER
+        // For example: BONK max safe is ~$7M, so for $1M/$10M/$50M/$100M, we should start from ~$7M down
+        let startAmount = maxSafeUsdAmount * 0.95; // Always start at 95% of max safe (not usdAmount!)
         let previousTradeSize = 0;
         
         // Find the previous trade size that was successfully tested
@@ -792,6 +793,12 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         // This ensures we test the full range up to MAX_SAFE_INTEGER
         let testAmount = startAmount;
         const minAmount = Math.max(previousTradeSize * 1.1, 500); // Test at least 10% above previous, or $500 minimum
+        
+        // Ensure we don't start below minimum
+        if (startAmount < minAmount) {
+          startAmount = minAmount;
+          testAmount = startAmount;
+        }
         
         while (testAmount >= minAmount && smallerAmounts.length < 30) {
           smallerAmounts.push(Math.floor(testAmount));
