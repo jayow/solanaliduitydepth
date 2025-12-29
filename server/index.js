@@ -1451,11 +1451,16 @@ app.get('/api/liquidity-depth', async (req, res) => {
       console.warn('  4. Network connectivity issues');
     }
     
+    // Get baseline price from the first successful depth point (smallest trade)
+    // This represents the spot price before any price impact
+    const baselinePrice = depth.length > 0 ? depth[0].price : null;
+    
     res.json({
       inputMint,
       outputMint,
       isBuy: isBuyOrder,
       depth,
+      baselinePrice, // Add baseline price for frontend to always show spot price
       metadata: {
         pointsCount: depth.length,
         calculationTime: `${duration}ms`,

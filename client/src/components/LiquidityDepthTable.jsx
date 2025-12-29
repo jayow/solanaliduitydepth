@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import './LiquidityDepthTable.css';
 
-function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
+function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, baselinePrice }) {
   // Standard trade sizes to sample (in USD value, matching DeFiLlama)
   // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $10M, $50M, $100M
   const standardTradeSizes = [
@@ -119,7 +119,8 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken }) {
   }
 
   // Get current price from best price
-  const bestPrice = sellDepth?.[0]?.price || buyDepth?.[0]?.price || 0;
+  // Use baseline price if available (spot price), otherwise fall back to first depth point
+  const bestPrice = baselinePrice || sellDepth?.[0]?.price || buyDepth?.[0]?.price || 0;
 
   return (
     <div className="liquidity-table-container">

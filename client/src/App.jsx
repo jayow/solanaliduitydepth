@@ -14,6 +14,7 @@ function App() {
   const [focusedPanel, setFocusedPanel] = useState(null); // 'input' or 'output'
   const [buyDepth, setBuyDepth] = useState([]);
   const [sellDepth, setSellDepth] = useState([]);
+  const [baselinePrice, setBaselinePrice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(true);
   const [error, setError] = useState(null);
@@ -173,8 +174,15 @@ function App() {
       const buyDepthData = buyResponse.data.depth || [];
       const sellDepthData = sellResponse.data.depth || [];
       
+      // Store baseline price if available (spot price before price impact)
+      // Use sell baseline price (selling input token) as primary, fallback to buy
+      const sellBaselinePrice = sellResponse.data.baselinePrice;
+      const buyBaselinePrice = buyResponse.data.baselinePrice;
+      const priceToUse = sellBaselinePrice || buyBaselinePrice || null;
+      
       setBuyDepth(buyDepthData);
       setSellDepth(sellDepthData);
+      setBaselinePrice(priceToUse);
       
       if (buyDepthData.length === 0 && sellDepthData.length === 0) {
         setStatusMessage('⚠️ No liquidity data returned. Check server logs for details.');
@@ -341,6 +349,7 @@ function App() {
                       sellDepth={sellDepth}
                       inputToken={inputToken}
                       outputToken={outputToken}
+                      baselinePrice={baselinePrice}
                     />
                   ) : (
                     <LiquidityDepthChart
