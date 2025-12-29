@@ -973,7 +973,8 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       
       // Check if this is a routing/liquidity error that might benefit from trying smaller amounts
       // Jupiter's frontend handles any routing error by trying progressively smaller amounts
-      // This matches Jupiter's behavior: when large trades fail, try smaller amounts
+      // This matches Jupiter's behavior: when trades fail, try smaller amounts
+      // Apply to ALL trade sizes to ensure we test max trade sizes for all tokens
       const isRoutingError = 
         errorCode === 'ROUTE_PLAN_DOES_NOT_CONSUME_ALL_THE_AMOUNT' ||
         errorMsg?.includes('does not consume all the amount') ||
@@ -981,7 +982,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         errorMsg?.toLowerCase().includes('cannot route') ||
         errorMsg?.toLowerCase().includes('insufficient liquidity') ||
         errorMsg?.toLowerCase().includes('liquidity') ||
-        (statusCode === 400 && usdAmount >= 10000000); // For large amounts, 400 often means routing issue
+        (statusCode === 400); // 400 status code often indicates routing/liquidity issues for any trade size
       
       // Handle routing errors by trying progressively smaller amounts
       // This matches how Jupiter's frontend handles tokens not in the official list
