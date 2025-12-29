@@ -821,21 +821,19 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(`✅ Using first successful quote as baseline price: ${baselinePrice.toFixed(6)}`);
         }
         
-        // Use Jupiter's priceImpactPct directly - it's the most accurate
-        // Jupiter's API calculates this using their routing algorithm
-        // NOTE: There may be discrepancies between API priceImpactPct and Jupiter frontend display
-        // This can occur if Jupiter frontend uses a different calculation method, baseline, or cached data
-        // The API priceImpactPct is the authoritative source for our implementation
+        // Use Jupiter Ultra API's priceImpactPct directly - it matches frontend calculation
+        // Ultra API calculates this using their routing algorithm and matches what users see on Jupiter frontend
         let priceImpact = 0;
         
         if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
-          // Jupiter returns priceImpactPct as a decimal (e.g., 0.9784 = 97.84%)
-          // API always returns positive values, regardless of buy/sell direction
-          // NOTE: Jupiter frontend may show different values (e.g., -65% vs API's 97.84%)
-          // This can occur if frontend uses different baseline price, calculation method, or cached data
-          // The API priceImpactPct is the authoritative source for our implementation
-          priceImpact = Math.abs(parseFloat(quote.priceImpactPct)) * 100;
-          console.log(`📊 Using Jupiter's priceImpactPct: ${priceImpact.toFixed(2)}%`);
+          // Ultra API returns priceImpactPct as a decimal (e.g., -0.2652 = -26.52%)
+          // It can be negative for sell orders (negative impact = getting less than expected)
+          // Convert to percentage, preserving sign
+          priceImpact = parseFloat(quote.priceImpactPct) * 100;
+          // Use absolute value for display (we show it as positive percentage)
+          const displayImpact = Math.abs(priceImpact);
+          console.log(`📊 Using Jupiter Ultra API priceImpactPct: ${displayImpact.toFixed(2)}% (raw: ${priceImpact.toFixed(2)}%)`);
+          priceImpact = displayImpact; // Store as positive for consistency
         } else if (baselinePrice && baselinePrice > 0) {
           // Fallback: Calculate price impact ourselves if Jupiter's priceImpactPct not available
           // Calculate expected output based on baseline (spot) price
