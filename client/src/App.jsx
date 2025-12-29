@@ -210,7 +210,6 @@ function App() {
                     <div className="token-selector-container">
                     <TokenSelector
                       label="Input Token"
-                      tokens={tokens}
                       selectedToken={inputToken}
                       onSelect={setInputToken}
                       isSelected={focusedPanel === 'input'}
@@ -321,7 +320,6 @@ function App() {
                   <div className="token-selector-container">
                     <TokenSelector
                       label="Input Token"
-                      tokens={tokens}
                       selectedToken={inputToken}
                       onSelect={setInputToken}
                       isSelected={focusedPanel === 'input'}
