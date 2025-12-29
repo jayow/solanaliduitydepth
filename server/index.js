@@ -749,10 +749,135 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       rawAmount = Math.floor(tokenAmount * Math.pow(10, quoteInputDecimals));
       
       // Check for safe integer limits (JavaScript's MAX_SAFE_INTEGER)
+      // For tokens with low prices and high decimals, large USD amounts can exceed MAX_SAFE_INTEGER
+      // In this case, try progressively smaller amounts to find the maximum routable amount
       if (rawAmount > Number.MAX_SAFE_INTEGER) {
         const errorMsg = `Raw amount exceeds MAX_SAFE_INTEGER: ${rawAmount.toLocaleString()} > ${Number.MAX_SAFE_INTEGER.toLocaleString()}`;
-        console.error(`❌ ${errorMsg} for ${formatUSD(usdAmount)}`);
-        logs.push(`❌ ${errorMsg}`);
+        console.warn(`⚠️ ${errorMsg} for ${formatUSD(usdAmount)}`);
+        console.warn(`   💡 This token has low price or high decimals. Trying smaller amounts to find maximum routable size...`);
+        logs.push(`⚠️ ${errorMsg}`);
+        logs.push(`   💡 Trying smaller amounts to find maximum routable size...`);
+        
+        // Try progressively smaller amounts to find maximum that doesn't exceed MAX_SAFE_INTEGER
+        // Calculate the maximum safe USD amount based on token price and decimals
+        // MAX_SAFE_INTEGER / (10^decimals) gives us max token amount
+        // Then multiply by baselinePrice to get max USD amount
+        let maxSafeUsdAmount = Number.MAX_SAFE_INTEGER / Math.pow(10, quoteInputDecimals);
+        if (baselinePrice && baselinePrice > 0) {
+          if (isBuy) {
+            // Buying: maxSafeUsdAmount is already in USD (USDC)
+            maxSafeUsdAmount = Math.min(maxSafeUsdAmount, Number.MAX_SAFE_INTEGER / Math.pow(10, quoteInputDecimals));
+          } else {
+            // Selling: convert token amount to USD
+            maxSafeUsdAmount = maxSafeUsdAmount * baselinePrice;
+          }
+        }
+        
+        // Generate smaller amounts to try, starting from maxSafeUsdAmount down
+        const smallerAmounts = [];
+        let testAmount = Math.min(usdAmount, maxSafeUsdAmount * 0.9); // Start at 90% of max safe
+        while (testAmount >= 500 && smallerAmounts.length < 20) {
+          smallerAmounts.push(Math.floor(testAmount));
+          testAmount = testAmount * 0.8; // Reduce by 20% each time
+        }
+        
+        if (smallerAmounts.length > 0) {
+          console.log(`   🔄 Trying ${smallerAmounts.length} smaller amounts: ${smallerAmounts.map(s => formatUSD(s)).join(', ')}`);
+          logs.push(`   🔄 Trying ${smallerAmounts.length} smaller amounts...`);
+          
+          let foundWorkingAmount = false;
+          for (const smallerAmount of smallerAmounts) {
+            try {
+              let smallerTokenAmount;
+              if (isBuy) {
+                smallerTokenAmount = smallerAmount;
+              } else {
+                smallerTokenAmount = baselinePrice && baselinePrice > 0 
+                  ? smallerAmount / baselinePrice 
+                  : smallerAmount / 100;
+              }
+              
+              const smallerRawAmount = Math.floor(smallerTokenAmount * Math.pow(10, quoteInputDecimals));
+              
+              if (smallerRawAmount <= 0 || smallerRawAmount > Number.MAX_SAFE_INTEGER) {
+                continue;
+              }
+              
+              const tryMsg = `   🔄 Trying ${formatUSD(smallerAmount)} (raw: ${smallerRawAmount.toLocaleString()})...`;
+              console.log(tryMsg);
+              logs.push(tryMsg);
+              
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              // Use appropriate slippage
+              let smallerSlippageBps = 50;
+              if (smallerAmount >= 50000000) {
+                smallerSlippageBps = 10000;
+              } else if (smallerAmount >= 10000000) {
+                smallerSlippageBps = 5000;
+              } else if (smallerAmount >= 1000000) {
+                smallerSlippageBps = 500;
+              } else if (smallerAmount >= 100000) {
+                smallerSlippageBps = 200;
+              } else {
+                smallerSlippageBps = 100;
+              }
+              
+              const smallerQuote = await getQuote(quoteInputMint, quoteOutputMint, smallerRawAmount, smallerSlippageBps, 3);
+              
+              if (smallerQuote?.outAmount && smallerQuote?.inAmount) {
+                const inputAmountRaw = isBuy ? smallerQuote.outAmount : smallerQuote.inAmount;
+                const outputAmountRaw = isBuy ? smallerQuote.inAmount : smallerQuote.outAmount;
+                
+                const inputAmountReadable = parseFloat(inputAmountRaw) / Math.pow(10, inputDecimals);
+                const outputAmountReadable = parseFloat(outputAmountRaw) / Math.pow(10, outputDecimals);
+                
+                if (isFinite(inputAmountReadable) && inputAmountReadable > 0 && 
+                    isFinite(outputAmountReadable) && outputAmountReadable > 0) {
+                  const price = outputAmountReadable / inputAmountReadable;
+                  
+                  if (isFinite(price) && price > 0 && price < 1e10) {
+                    if (!baselinePrice) {
+                      baselinePrice = price;
+                    }
+                    
+                    const priceImpact = Math.abs(((price - baselinePrice) / baselinePrice) * 100);
+                    
+                    // Check if we already have this trade size
+                    const existingPoint = depthPoints.find(p => Math.abs(p.tradeUsdValue - smallerAmount) < 1000);
+                    if (!existingPoint) {
+                      depthPoints.push({
+                        price,
+                        amount: inputAmountReadable,
+                        outputAmount: outputAmountReadable,
+                        priceImpact,
+                        slippage: priceImpact,
+                        tradeUsdValue: smallerAmount,
+                        rawInputAmount: inputAmountRaw,
+                        rawOutputAmount: outputAmountRaw,
+                      });
+                      
+                      const successMsg = `✅ ${formatUSD(smallerAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
+                      console.log(successMsg);
+                      logs.push(successMsg);
+                      foundWorkingAmount = true;
+                      break; // Found working amount, stop trying smaller
+                    }
+                  }
+                }
+              }
+            } catch (smallerError) {
+              continue;
+            }
+          }
+          
+          if (!foundWorkingAmount) {
+            const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)} (exceeds MAX_SAFE_INTEGER)`;
+            console.error(noRouteMsg);
+            logs.push(noRouteMsg);
+          }
+        }
+        
         errors.push({
           tradeSize: usdAmount,
           tradeSizeFormatted: formatUSD(usdAmount),
