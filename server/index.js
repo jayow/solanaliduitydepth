@@ -688,6 +688,10 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     console.warn('⚠️ Could not get baseline price. Will use first successful quote as baseline.');
   }
 
+  // Track consecutive failures to exit early if token has no liquidity
+  let consecutiveFailures = 0;
+  const MAX_CONSECUTIVE_FAILURES = 5; // Exit early if 5 small trades fail in a row
+  
   // Now test each USD trade size
   // Convert each fixed USD amount to the exact token amount needed
   for (const usdAmount of usdTradeSizes) {
@@ -1026,6 +1030,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         const successMsg = `✅ ${formatUSD(usdAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
         console.log(successMsg);
         logs.push(successMsg);
+        
+        // Reset consecutive failures on success
+        consecutiveFailures = 0;
       } else {
         const invalidMsg = `⚠️ Invalid quote response for ${formatUSD(usdAmount)}: ${quote ? 'Missing outAmount/inAmount' : 'No quote data'}`;
         console.warn(invalidMsg);
@@ -1044,6 +1051,23 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       const statusCode = error.response?.status;
       const fullErrorData = error.response?.data;
       
+      // Check for "Invalid inputMint" - means Jupiter doesn't support this token at all
+      // Exit immediately to save time (no point trying other sizes)
+      if (errorMsg?.includes('Invalid inputMint') || errorMsg?.includes('Invalid mint') || errorCode === 'INVALID_INPUT_MINT') {
+        const invalidMintMsg = `❌ Token not supported by Jupiter: ${errorMsg}. Exiting early.`;
+        console.error(invalidMintMsg);
+        logs.push(invalidMintMsg);
+        errors.push({
+          tradeSize: usdAmount,
+          tradeSizeFormatted: formatUSD(usdAmount),
+          error: errorMsg,
+          errorCode: errorCode,
+          statusCode: statusCode,
+          timestamp: new Date().toISOString()
+        });
+        break; // Exit immediately - no point trying other sizes
+      }
+      
       // Check if this is a routing/liquidity error that might benefit from trying smaller amounts
       // Jupiter's frontend handles any routing error by trying progressively smaller amounts
       // This matches Jupiter's behavior: when large trades fail, try smaller amounts
@@ -1056,9 +1080,14 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         errorMsg?.toLowerCase().includes('liquidity') ||
         (statusCode === 400 && usdAmount >= 10000000); // For large amounts, 400 often means routing issue
       
+      // Skip binary search for small trades if we already have failures - saves time
+      if (isRoutingError && usdAmount < 1000000 && consecutiveFailures >= 3) {
+        const skipMsg = `⏭️ Skipping binary search for ${formatUSD(usdAmount)} - too many failures already`;
+        console.log(skipMsg);
+        logs.push(skipMsg);
+      } else if (isRoutingError) {
       // Handle routing errors by trying progressively smaller amounts
       // This matches how Jupiter's frontend handles tokens not in the official list
-      if (isRoutingError) {
         const partialFillMsg = `⚠️ Jupiter cannot route ${formatUSD(usdAmount)} - ${errorMsg}`;
         console.warn(partialFillMsg);
         logs.push(partialFillMsg);
