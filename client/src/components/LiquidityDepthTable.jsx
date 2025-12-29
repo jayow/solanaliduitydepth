@@ -3,7 +3,7 @@ import './LiquidityDepthTable.css';
 
 function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, baselinePrice }) {
   // Standard trade sizes to sample (in USD value, matching DeFiLlama)
-  // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $10M, $50M, $100M
+  // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $10M, $15M, $20M, $30M, $50M, $100M
   const standardTradeSizes = [
     500,        // $500
     1000,       // $1K
@@ -11,6 +11,9 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, bas
     100000,     // $100K
     1000000,    // $1M
     10000000,   // $10M
+    15000000,   // $15M
+    20000000,   // $20M
+    30000000,   // $30M
     50000000,   // $50M
     100000000,  // $100M
   ];

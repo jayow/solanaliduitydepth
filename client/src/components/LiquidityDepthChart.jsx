@@ -167,14 +167,28 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     const logX = Math.log10(xValue);
     const ratio = (logX - logX1) / (logX2 - logX1);
     
-    // Interpolate all values
-    const interpolatedPriceImpact = lowerPoint.priceImpact + (upperPoint.priceImpact - lowerPoint.priceImpact) * ratio;
+    // For price impact, use log-scale interpolation when both values are > 0
+    // This is more accurate for stablecoins where price impact should scale logarithmically
+    let interpolatedPriceImpact;
+    if (lowerPoint.priceImpact > 0 && upperPoint.priceImpact > 0) {
+      // Use log-scale interpolation for price impact (more accurate for low values)
+      const logImpact1 = Math.log10(lowerPoint.priceImpact + 0.001); // Add small value to avoid log(0)
+      const logImpact2 = Math.log10(upperPoint.priceImpact + 0.001);
+      const logImpact = logImpact1 + (logImpact2 - logImpact1) * ratio;
+      interpolatedPriceImpact = Math.pow(10, logImpact) - 0.001;
+      // Ensure it's not negative
+      if (interpolatedPriceImpact < 0) interpolatedPriceImpact = 0;
+    } else {
+      // Fallback to linear interpolation if one value is 0
+      interpolatedPriceImpact = lowerPoint.priceImpact + (upperPoint.priceImpact - lowerPoint.priceImpact) * ratio;
+    }
+    
     return {
       tradeUsdValue: xValue,
       tradeAmount: lowerPoint.tradeAmount + (upperPoint.tradeAmount - lowerPoint.tradeAmount) * ratio,
       receiveAmount: lowerPoint.receiveAmount + (upperPoint.receiveAmount - lowerPoint.receiveAmount) * ratio,
-      priceImpact: Math.round(interpolatedPriceImpact), // Round to whole number for cleaner display
-      slippage: Math.round(lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio), // Keep for compatibility, also rounded
+      priceImpact: Math.max(0, interpolatedPriceImpact), // Ensure non-negative, don't round to preserve precision
+      slippage: Math.max(0, lowerPoint.slippage + (upperPoint.slippage - lowerPoint.slippage) * ratio), // Keep for compatibility
       price: lowerPoint.price + (upperPoint.price - lowerPoint.price) * ratio,
     };
   };

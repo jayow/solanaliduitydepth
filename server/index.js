@@ -540,6 +540,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   const quoteInputDecimals = isBuy ? outputDecimals : inputDecimals;
   
   // Fixed USD trade sizes to test (matching DeFiLlama format)
+  // Added more granular sizes in $10M-$50M range for better accuracy, especially for stablecoins
   const usdTradeSizes = [
     500,        // $500
     1000,       // $1K
@@ -547,6 +548,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
     100000,     // $100K
     1000000,    // $1M
     10000000,   // $10M
+    15000000,   // $15M (added for better interpolation)
+    20000000,   // $20M (added for better interpolation)
+    30000000,   // $30M (added for better interpolation)
     50000000,   // $50M
     100000000,  // $100M
   ];
@@ -949,6 +953,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         // Use Jupiter Ultra API's priceImpactPct directly - it matches frontend calculation
         // Ultra API calculates this using their routing algorithm and matches what users see on Jupiter frontend
         let priceImpact = 0;
+        let usedJupiterPriceImpact = false;
         
         if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
           // Ultra API returns priceImpactPct as a decimal (e.g., -0.2652 = -26.52%)
@@ -957,10 +962,14 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           priceImpact = parseFloat(quote.priceImpactPct) * 100;
           // Use absolute value for display (we show it as positive percentage)
           const displayImpact = Math.abs(priceImpact);
-          console.log(`📊 Using Jupiter Ultra API priceImpactPct: ${displayImpact.toFixed(2)}% (raw: ${priceImpact.toFixed(2)}%)`);
+          console.log(`📊 Using Jupiter Ultra API priceImpactPct: ${displayImpact.toFixed(4)}% (raw: ${priceImpact.toFixed(4)}%)`);
           priceImpact = displayImpact; // Store as positive for consistency
+          usedJupiterPriceImpact = true;
         } else if (baselinePrice && baselinePrice > 0) {
           // Fallback: Calculate price impact ourselves if Jupiter's priceImpactPct not available
+          // WARNING: This is less accurate than Jupiter's calculation, especially for stablecoins
+          console.warn(`⚠️ Jupiter priceImpactPct not available, using fallback calculation (may be inaccurate for stablecoins)`);
+          
           // Calculate expected output based on baseline (spot) price
           let expectedOutput;
           
@@ -984,16 +993,21 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           // Price impact = (expected - actual) / expected * 100
           if (expectedOutput > 0 && actualOutput > 0) {
             priceImpact = Math.abs((expectedOutput - actualOutput) / expectedOutput) * 100;
-            console.log(`📊 Calculated price impact (fallback): ${priceImpact.toFixed(2)}% (expected: ${formatAmount(expectedOutput)}, actual: ${formatAmount(actualOutput)})`);
+            console.log(`📊 Calculated price impact (fallback): ${priceImpact.toFixed(4)}% (expected: ${formatAmount(expectedOutput)}, actual: ${formatAmount(actualOutput)})`);
           } else {
             // Fallback to price-based calculation if amounts are invalid
             const executionPrice = outputAmountReadable / inputAmountReadable;
             priceImpact = Math.abs((executionPrice - baselinePrice) / baselinePrice) * 100;
-            console.log(`📊 Price impact (fallback): ${priceImpact.toFixed(2)}%`);
+            console.log(`📊 Price impact (fallback, price-based): ${priceImpact.toFixed(4)}%`);
           }
         } else {
           console.warn(`⚠️ Cannot calculate price impact: no baseline price and no priceImpactPct`);
           priceImpact = 0;
+        }
+        
+        // Log if we're using fallback for large trades (this could indicate an issue)
+        if (!usedJupiterPriceImpact && usdAmount >= 10000000) {
+          console.warn(`⚠️ WARNING: Large trade (${formatUSD(usdAmount)}) using fallback price impact calculation - may be inaccurate!`);
         }
         
         // Slippage is the same as price impact in this context (no market movement during execution)
