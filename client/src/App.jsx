@@ -261,7 +261,7 @@ function App() {
                     
                     <div className="swap-button-wrapper">
                       <button className="swap-button" onClick={swapTokens}>
-                        <span className="swap-button-inner">⇅</span>
+                        <span className="swap-button-inner">⇄</span>
                       </button>
                     </div>
 
@@ -385,7 +385,7 @@ function App() {
                     
                     <div className="swap-button-wrapper">
                       <button className="swap-button" onClick={swapTokens}>
-                        <span className="swap-button-inner">⇅</span>
+                        <span className="swap-button-inner">⇄</span>
                       </button>
                     </div>
 
