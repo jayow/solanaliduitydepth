@@ -785,7 +785,11 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(`   🔄 Trying ${smallerAmounts.length} smaller amounts: ${smallerAmounts.map(s => formatUSD(s)).join(', ')}`);
           logs.push(`   🔄 Trying ${smallerAmounts.length} smaller amounts...`);
           
+          let maxWorkingAmount = 0;
           let foundWorkingAmount = false;
+          
+          // Try all smaller amounts to find the MAXIMUM working amount, not just the first one
+          // This ensures we test the full range up to MAX_SAFE_INTEGER
           for (const smallerAmount of smallerAmounts) {
             try {
               let smallerTokenAmount;
@@ -861,7 +865,11 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                       console.log(successMsg);
                       logs.push(successMsg);
                       foundWorkingAmount = true;
-                      break; // Found working amount, stop trying smaller
+                      
+                      // Track maximum working amount - don't break, continue to find the highest
+                      if (smallerAmount > maxWorkingAmount) {
+                        maxWorkingAmount = smallerAmount;
+                      }
                     }
                   }
                 }
@@ -869,6 +877,12 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
             } catch (smallerError) {
               continue;
             }
+          }
+          
+          if (maxWorkingAmount > 0) {
+            const maxFoundMsg = `   📊 Maximum safe amount found: ${formatUSD(maxWorkingAmount)} (limited by MAX_SAFE_INTEGER)`;
+            console.log(maxFoundMsg);
+            logs.push(maxFoundMsg);
           }
           
           if (!foundWorkingAmount) {
