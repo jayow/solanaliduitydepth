@@ -23,6 +23,7 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('');
   const [elapsedTime, setElapsedTime] = useState(0); // Time elapsed in seconds
   const [abortController, setAbortController] = useState(null); // For canceling requests
+  const [timerInterval, setTimerInterval] = useState(null); // Store timer interval reference
 
   useEffect(() => {
     // No longer fetch all tokens on load - search as user types instead
@@ -101,6 +102,11 @@ function App() {
       setStatusMessage('Calculation cancelled by user.');
       setError('Calculation was cancelled.');
     }
+    // Clear any running timers
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+    }
   };
 
   const fetchLiquidityDepth = async () => {
@@ -117,14 +123,14 @@ function App() {
     
     // Start timer
     const startTime = Date.now();
-    let timerInterval = null;
     
     try {
       // Start timer interval
-      timerInterval = setInterval(() => {
+      const interval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         setElapsedTime(elapsed);
       }, 1000);
+      setTimerInterval(interval);
       const inputMint = inputToken.address || inputToken.mintAddress || inputToken.mint;
       const outputMint = outputToken.address || outputToken.mintAddress || outputToken.mint;
       
@@ -141,6 +147,7 @@ function App() {
           outputMint,
           isBuy: 'true',
         },
+        signal: controller.signal
       });
 
       setStatusMessage('Fetching sell depth from Jupiter API...');
@@ -150,6 +157,7 @@ function App() {
           outputMint,
           isBuy: 'false',
         },
+        signal: controller.signal
       });
 
       const buyDepthData = buyResponse.data.depth || [];
