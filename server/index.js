@@ -1435,18 +1435,18 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                 }
               }
               
-              if (bestAmount > maxWorkingAmount) {
-                const finalMaxMsg = `   🎯 Final maximum liquidity: ${formatUSD(bestAmount)}`;
-                console.log(finalMaxMsg);
-                logs.push(finalMaxMsg);
-              } else {
-                const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
-                console.log(maxReachedMsg);
-                logs.push(maxReachedMsg);
-              }
+            if (bestAmount > maxWorkingAmount) {
+              const finalMaxMsg = `   🎯 Final maximum liquidity: ${formatUSD(bestAmount)}`;
+              console.log(finalMaxMsg);
+              logs.push(finalMaxMsg);
+            } else {
+              const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
+              console.log(maxReachedMsg);
+              logs.push(maxReachedMsg);
             }
           }
         }
+      }
         
         // Store error but don't treat it as fatal
         errors.push({
