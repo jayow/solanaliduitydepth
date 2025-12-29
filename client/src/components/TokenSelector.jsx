@@ -214,7 +214,8 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
                   className="selected-token-icon"
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
+                    const placeholder = e.target.nextElementSibling;
+                    if (placeholder) placeholder.style.display = 'flex';
                   }}
                 />
               ) : null}
@@ -222,7 +223,10 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
                 className="selected-token-icon-placeholder"
                 style={{ display: (selectedToken.icon || selectedToken.logoURI || selectedToken.logoUri || selectedToken.image) ? 'none' : 'flex' }}
               >
-                {selectedToken.symbol?.charAt(0) || '?'}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="#1A2433" stroke="#6B7280" strokeWidth="1.5"/>
+                  <path d="M12 8V12M12 16H12.01" stroke="#9AA4B2" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </div>
               <div className="selected-token-info">
                 <span className="token-symbol">{selectedToken.symbol}</span>
@@ -298,7 +302,10 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
                         )}
                         {!tokenIcon && (
                           <div className="token-icon-placeholder">
-                            {token.symbol?.charAt(0) || '?'}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="12" cy="12" r="10" fill="#1A2433" stroke="#6B7280" strokeWidth="1.5"/>
+                              <path d="M12 8V12M12 16H12.01" stroke="#9AA4B2" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
                           </div>
                         )}
                         <div className="token-main-info">
