@@ -226,6 +226,11 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
                   selectedToken.mint === tokenAddress ||
                   selectedToken.id === tokenAddress
                 );
+                const tokenIcon = token.icon || token.logoURI || token.logoUri || token.image || null;
+                const isVerified = token.isVerified || (token.tags && token.tags.includes('verified')) || false;
+                const organicScore = token.organicScore || null;
+                const organicScoreLabel = token.organicScoreLabel || null;
+                
                 return (
                   <div
                     key={tokenAddress}
@@ -233,11 +238,40 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
                     onClick={() => handleSelect(token)}
                   >
                     <div className="token-info">
-                      <div className="token-main-info">
-                        <span className="token-symbol">{token.symbol || 'Unknown'}</span>
-                        <span className="token-name">{token.name || token.symbol || 'Unknown Token'}</span>
+                      <div className="token-left">
+                        {tokenIcon && (
+                          <img 
+                            src={tokenIcon} 
+                            alt={token.symbol || token.name}
+                            className="token-icon"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        )}
+                        {!tokenIcon && (
+                          <div className="token-icon-placeholder">
+                            {token.symbol?.charAt(0) || '?'}
+                          </div>
+                        )}
+                        <div className="token-main-info">
+                          <div className="token-name-row">
+                            <span className="token-symbol">{token.symbol || 'Unknown'}</span>
+                            {isVerified && (
+                              <span className="token-verified-badge" title="Verified token">
+                                ✓
+                              </span>
+                            )}
+                            {organicScore !== null && (
+                              <span className={`token-score token-score-${organicScoreLabel || 'medium'}`} title={`Organic Score: ${organicScore.toFixed(1)}`}>
+                                {Math.round(organicScore)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="token-name">{token.name || token.symbol || 'Unknown Token'}</span>
+                          <span className="token-address">{tokenAddress?.slice(0, 8)}...{tokenAddress?.slice(-6)}</span>
+                        </div>
                       </div>
-                      <span className="token-address">{tokenAddress?.slice(0, 8)}...{tokenAddress?.slice(-6)}</span>
                     </div>
                   </div>
                 );
