@@ -1666,10 +1666,10 @@ app.get('/api/tokens/search', async (req, res) => {
           name: token.name || token.symbol || 'Unknown Token',
           decimals: token.decimals !== undefined ? token.decimals : (token.symbol === 'SOL' ? 9 : 6),
           logoURI: token.logoURI || token.logoUri || token.icon || token.image || null,
-          icon: token.icon || token.logoURI || token.logoUri || token.image || null, // Ensure icon field is present
+          icon: token.icon || token.logoURI || token.logoUri || token.image || null,
           organicScore: token.organicScore,
           organicScoreLabel: token.organicScoreLabel,
-          isVerified: token.isVerified || (token.tags && token.tags.includes('verified')) || false,
+          isVerified: token.isVerified || false,
           tags: token.tags || [],
           ...token, // Keep original fields
           address, symbol: token.symbol || '', name: token.name || token.symbol || 'Unknown Token' // Override with normalized values
