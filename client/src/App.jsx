@@ -406,6 +406,12 @@ function App() {
                     <p className="loading-subtext">
                       ⏱️ Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
                     </p>
+                    <button 
+                      className="cancel-btn" 
+                      onClick={cancelCalculation}
+                    >
+                      Cancel Calculation
+                    </button>
                   </div>
                 )}
                 {!loading && statusMessage && (
