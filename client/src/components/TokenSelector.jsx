@@ -13,6 +13,32 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
+  // Default tokens (USDC and SOL) - always available
+  const defaultTokens = [
+    {
+      address: 'So11111111111111111111111111111111111111112',
+      symbol: 'SOL',
+      name: 'Solana',
+      decimals: 9,
+      icon: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+      logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+      isVerified: true,
+      organicScore: 100,
+      organicScoreLabel: 'high'
+    },
+    {
+      address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      icon: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+      logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+      isVerified: true,
+      organicScore: 100,
+      organicScoreLabel: 'high'
+    }
+  ];
+
   // Search tokens as user types (with debouncing)
   useEffect(() => {
     if (!isOpen) {
@@ -26,9 +52,9 @@ function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onF
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // If search term is empty, show popular tokens or empty
+    // If search term is empty, show default tokens (USDC and SOL)
     if (!searchTerm || searchTerm.trim().length === 0) {
-      setSearchResults([]);
+      setSearchResults(defaultTokens);
       setSearching(false);
       return;
     }
