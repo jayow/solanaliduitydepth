@@ -8,7 +8,7 @@ import './App.css';
 const API_BASE = '/api';
 
 function App() {
-  const [tokens, setTokens] = useState([]);
+  // No longer store all tokens - search as user types instead
   const [inputToken, setInputToken] = useState(null);
   const [outputToken, setOutputToken] = useState(null);
   const [focusedPanel, setFocusedPanel] = useState(null); // 'input' or 'output'
@@ -16,7 +16,7 @@ function App() {
   const [sellDepth, setSellDepth] = useState([]);
   const [baselinePrice, setBaselinePrice] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [loadingTokens, setLoadingTokens] = useState(true);
+  const [loadingTokens, setLoadingTokens] = useState(false); // No longer loading tokens on startup
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('chart'); // 'table' or 'chart'
   const [jupiterStatus, setJupiterStatus] = useState(null); // 'checking', 'connected', 'error'
@@ -24,8 +24,23 @@ function App() {
   const [elapsedTime, setElapsedTime] = useState(0); // Time elapsed in seconds
 
   useEffect(() => {
-    fetchTokens();
+    // No longer fetch all tokens on load - search as user types instead
     checkJupiterStatus();
+    
+    // Set default tokens (SOL and USDC) without fetching full list
+    // These are always available via search
+    setInputToken({
+      address: 'So11111111111111111111111111111111111111112',
+      symbol: 'SOL',
+      name: 'Solana',
+      decimals: 9
+    });
+    setOutputToken({
+      address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6
+    });
   }, []);
 
   const checkJupiterStatus = async () => {
@@ -63,41 +78,7 @@ function App() {
   // Removed automatic calculation on token selection
   // User must manually click "Calculate" button to run liquidity depth calculation
 
-  const fetchTokens = async (refresh = false) => {
-    setLoadingTokens(true);
-    setError(null);
-    setStatusMessage(refresh ? 'Refreshing tokens from Jupiter API...' : 'Loading tokens from Jupiter API...');
-    try {
-      const url = refresh ? `${API_BASE}/tokens?refresh=true` : `${API_BASE}/tokens`;
-      console.log('Fetching tokens from:', url);
-      const response = await axios.get(url);
-      console.log('Token response:', response.data);
-      const tokenList = Array.isArray(response.data) ? response.data : [];
-      console.log(`Received ${tokenList.length} tokens`);
-      setTokens(tokenList);
-      
-      // Set default tokens (SOL and USDC)
-      // SOL mint address: So11111111111111111111111111111111111111112
-      // USDC mint address: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-      const sol = tokenList.find(t => 
-        t.symbol === 'SOL' || 
-        t.address === 'So11111111111111111111111111111111111111112'
-      );
-      const usdc = tokenList.find(t => 
-        t.symbol === 'USDC' || 
-        t.address === 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-      );
-      
-      if (sol) {
-        console.log('Setting SOL as input token:', sol);
-        setInputToken(sol);
-      }
-      if (usdc) {
-        console.log('Setting USDC as output token:', usdc);
-        setOutputToken(usdc);
-      }
-      
-      if (tokenList.length === 0) {
+  // Removed fetchTokens - tokens are now searched on-demand as user types
         setError('No tokens found. Please check your connection.');
         setStatusMessage('No tokens received from API');
       } else {

@@ -1409,6 +1409,72 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
 }
 
 // Routes
+// Search tokens using Jupiter's Data API (search-as-you-type)
+app.get('/api/tokens/search', async (req, res) => {
+  try {
+    const query = req.query.q || req.query.query || '';
+    
+    if (!query || query.trim().length === 0) {
+      // Return empty array for empty query
+      return res.json([]);
+    }
+
+    console.log(`🔍 Searching tokens for query: "${query}"`);
+    
+    // Use Jupiter's Data API for search (same API their frontend uses)
+    const searchUrl = `https://datapi.jup.ag/v1/assets/search?query=${encodeURIComponent(query)}`;
+    
+    try {
+      const response = await axiosInstance.get(searchUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Solana-Liquidity-Depth/1.0'
+        },
+        timeout: 10000
+      });
+
+      let tokens = response.data;
+      
+      // Data API returns array directly
+      if (!Array.isArray(tokens)) {
+        tokens = [];
+      }
+
+      // Normalize token structure
+      const normalizedTokens = tokens.map(token => {
+        const address = token.id || token.address || token.mintAddress || token.mint;
+        return {
+          address: address,
+          symbol: token.symbol || '',
+          name: token.name || token.symbol || 'Unknown Token',
+          decimals: token.decimals !== undefined ? token.decimals : (token.symbol === 'SOL' ? 9 : 6),
+          logoURI: token.logoURI || token.logoUri || token.icon || token.image || null,
+          ...token, // Keep original fields
+          address, symbol: token.symbol || '', name: token.name || token.symbol || 'Unknown Token' // Override with normalized values
+        };
+      }).filter(token => {
+        // Filter out invalid tokens
+        return token.address && 
+               typeof token.address === 'string' && 
+               token.address.length > 0 && 
+               token.address.length <= 44;
+      });
+
+      console.log(`✅ Found ${normalizedTokens.length} tokens for query "${query}"`);
+      res.json(normalizedTokens);
+    } catch (error) {
+      console.error(`❌ Token search failed for query "${query}":`, error.message);
+      // Return empty array on error (don't fail the request)
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('Token search error:', error);
+    res.status(500).json({ error: 'Token search failed', message: error.message });
+  }
+});
+
+// Legacy endpoint - keep for backward compatibility but return empty array
+// Frontend should use /api/tokens/search instead
 app.get('/api/tokens', async (req, res) => {
   try {
     const refresh = req.query.refresh === 'true';

@@ -1,19 +1,62 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import './TokenSelector.css';
 
-function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = false }) {
+const API_BASE = '/api';
+
+function TokenSelector({ label, selectedToken, onSelect, isSelected = false, onFocusChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
-  // Debug: Log tokens when they change
+  // Search tokens as user types (with debouncing)
   useEffect(() => {
-    console.log(`${label} TokenSelector - Received ${Array.isArray(tokens) ? tokens.length : 0} tokens`);
-    if (Array.isArray(tokens) && tokens.length > 0) {
-      console.log(`First token:`, tokens[0]);
+    if (!isOpen) {
+      setSearchTerm('');
+      setSearchResults([]);
+      return;
     }
-  }, [tokens, label]);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // If search term is empty, show popular tokens or empty
+    if (!searchTerm || searchTerm.trim().length === 0) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+
+    // Debounce search - wait 300ms after user stops typing
+    setSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/tokens/search`, {
+          params: { q: searchTerm.trim() }
+        });
+        const results = Array.isArray(response.data) ? response.data : [];
+        setSearchResults(results);
+        console.log(`Found ${results.length} tokens for "${searchTerm}"`);
+      } catch (error) {
+        console.error('Token search error:', error);
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm, isOpen]);
 
   // Auto-focus search input when dropdown opens
   useEffect(() => {
@@ -71,15 +114,8 @@ function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = fa
     return score;
   };
 
-  const filteredTokens = (Array.isArray(tokens) ? tokens : [])
-    .map(token => ({
-      token,
-      score: getSearchScore(token, searchTerm.toLowerCase())
-    }))
-    .filter(({ score }) => score > 0 || !searchTerm)
-    .sort((a, b) => b.score - a.score) // Sort by score (highest first)
-    .map(({ token }) => token)
-    .slice(0, 200); // Limit results
+  // Use search results directly (already filtered and sorted by Jupiter's API)
+  const filteredTokens = searchResults;
 
   const handleClear = (e) => {
     e.stopPropagation();
@@ -179,18 +215,21 @@ function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = fa
             )}
           </div>
           <div className="token-list">
-            {filteredTokens.length > 0 ? (
+            {searching ? (
+              <div className="no-tokens">Searching...</div>
+            ) : filteredTokens.length > 0 ? (
               filteredTokens.map((token) => {
-                const tokenAddress = token.address || token.mintAddress || token.mint;
-                const isSelected = selectedToken && (
+                const tokenAddress = token.address || token.mintAddress || token.mint || token.id;
+                const isSelectedToken = selectedToken && (
                   selectedToken.address === tokenAddress ||
                   selectedToken.mintAddress === tokenAddress ||
-                  selectedToken.mint === tokenAddress
+                  selectedToken.mint === tokenAddress ||
+                  selectedToken.id === tokenAddress
                 );
                 return (
                   <div
                     key={tokenAddress}
-                    className={`token-item ${isSelected ? 'selected' : ''}`}
+                    className={`token-item ${isSelectedToken ? 'selected' : ''}`}
                     onClick={() => handleSelect(token)}
                   >
                     <div className="token-info">
@@ -203,8 +242,10 @@ function TokenSelector({ label, tokens, selectedToken, onSelect, isSelected = fa
                   </div>
                 );
               })
+            ) : searchTerm ? (
+              <div className="no-tokens">No tokens found for "{searchTerm}"</div>
             ) : (
-              <div className="no-tokens">No tokens found</div>
+              <div className="no-tokens">Type to search for tokens...</div>
             )}
           </div>
         </div>
