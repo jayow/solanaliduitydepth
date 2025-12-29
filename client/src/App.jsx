@@ -443,6 +443,12 @@ function App() {
           </>
         )}
       </main>
+      
+      <footer className="app-footer">
+        <p className="donation-text">
+          Donations: <span className="donation-address">AN8BWgZvXLrBzNf6Yrvd6A6KQcAxSkRMak5SQn6jkT9F</span>
+        </p>
+      </footer>
     </div>
   );
 }
