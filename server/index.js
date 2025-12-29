@@ -760,7 +760,21 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       console.log(quoteLog2);
       logs.push(quoteLog1, quoteLog2);
       const quoteStartTime = Date.now();
-      const quote = await getQuote(quoteInputMint, quoteOutputMint, rawAmount, 50, retryCount);
+      // Use higher slippage for larger trades to allow high price impact
+      // Jupiter's frontend allows up to 100% slippage for finding max liquidity
+      // For $50M+ trades, use 10000 bps (100%) to find true liquidity limits
+      // For $10M+ trades, use 5000 bps (50%) to allow high price impact
+      // For smaller trades, use standard 50 bps (0.5%)
+      let slippageBps = 50;
+      if (usdAmount >= 50000000) {
+        slippageBps = 10000; // 100% slippage for very large trades
+      } else if (usdAmount >= 10000000) {
+        slippageBps = 5000; // 50% slippage for large trades
+      } else if (usdAmount >= 1000000) {
+        slippageBps = 500; // 5% slippage for $1M+ trades
+      }
+      
+      const quote = await getQuote(quoteInputMint, quoteOutputMint, rawAmount, slippageBps, retryCount);
       const quoteDuration = ((Date.now() - quoteStartTime) / 1000).toFixed(2);
       const quoteLog3 = `   ⏱️ Quote request completed in ${quoteDuration}s`;
       console.log(quoteLog3);
@@ -905,22 +919,29 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(trySmallerMsg);
           logs.push(trySmallerMsg);
           
-          // Determine which amounts to try based on the failed amount
+          // Use binary search approach to find maximum routable amount
+          // Start with larger steps, then narrow down to find exact maximum
+          // This ensures we find the true liquidity limit, not just any working amount
           let smallerAmounts;
           if (usdAmount >= 50000000) {
-            // For $50M+, try: 40M, 30M, 20M, 15M, 12M, 11M, 10.5M, 10M
-            smallerAmounts = [40000000, 30000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
+            // For $50M+, try: 45M, 40M, 35M, 30M, 25M, 20M, 15M, 12M, 11M, 10.5M, 10M
+            // Then continue searching upward from last working amount
+            smallerAmounts = [45000000, 40000000, 35000000, 30000000, 25000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
           } else if (usdAmount >= 10000000) {
-            // For $10M+, try amounts closer to $10M first, then smaller
-            // User reports Jupiter frontend can route $10M+ with high price impact
-            smallerAmounts = [10000000, 9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000];
+            // For $10M+, try granular amounts to find exact maximum
+            // Try larger amounts first, then smaller
+            smallerAmounts = [9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000, 4500000, 4000000, 3500000, 3000000, 2500000, 2000000];
           } else {
             smallerAmounts = [];
           }
+          
+          // Track the maximum working amount found so we can search upward from it
+          let maxWorkingAmount = 0;
           let foundWorkingAmount = false;
           
           for (const smallerAmount of smallerAmounts) {
-            if (foundWorkingAmount) break;
+            // Don't break early - continue searching to find the maximum working amount
+            // We want to test all amounts to find the true liquidity limit
             
             try {
               // Calculate token amount for the smaller USD amount
@@ -944,7 +965,10 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
               // Small delay before retry
               await new Promise(resolve => setTimeout(resolve, 200));
               
-              const smallerQuote = await getQuote(quoteInputMint, quoteOutputMint, smallerRawAmount, 50, 3);
+              // Use high slippage for finding max liquidity (same as main trade)
+              // This allows us to find trades with very high price impact
+              const smallerSlippageBps = usdAmount >= 50000000 ? 10000 : (usdAmount >= 10000000 ? 5000 : 500);
+              const smallerQuote = await getQuote(quoteInputMint, quoteOutputMint, smallerRawAmount, smallerSlippageBps, 3);
               
               if (smallerQuote?.outAmount && smallerQuote?.inAmount) {
                 const successMsg = `   ✅ Found working amount: ${formatUSD(smallerAmount)}`;
@@ -987,7 +1011,15 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                     const partialSuccessMsg = `✅ ${formatUSD(smallerAmount)} (partial fill of ${formatUSD(usdAmount)}): ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
                     console.log(partialSuccessMsg);
                     logs.push(partialSuccessMsg);
+                    
+                    // Track maximum working amount found
+                    if (smallerAmount > maxWorkingAmount) {
+                      maxWorkingAmount = smallerAmount;
+                    }
                     foundWorkingAmount = true;
+                    
+                    // Don't break - continue trying larger amounts to find true maximum
+                    // We want to find the highest amount that works, not just any working amount
                   }
                 }
               }
@@ -1001,6 +1033,98 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
             const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)}`;
             console.error(noRouteMsg);
             logs.push(noRouteMsg);
+          } else if (maxWorkingAmount > 0) {
+            // If we found a working amount, try to find the maximum by searching upward
+            // Binary search between maxWorkingAmount and usdAmount to find exact maximum
+            const maxFoundMsg = `   📊 Maximum routable amount found: ${formatUSD(maxWorkingAmount)}`;
+            console.log(maxFoundMsg);
+            logs.push(maxFoundMsg);
+            
+            // Try amounts between maxWorkingAmount and usdAmount to find exact maximum
+            if (usdAmount > maxWorkingAmount) {
+              const searchUpMsg = `   🔍 Searching upward from ${formatUSD(maxWorkingAmount)} to find exact maximum...`;
+              console.log(searchUpMsg);
+              logs.push(searchUpMsg);
+              
+              // Generate intermediate amounts to test
+              const stepSize = Math.min((usdAmount - maxWorkingAmount) / 10, 5000000); // Max $5M steps
+              const upwardAmounts = [];
+              for (let testAmount = maxWorkingAmount + stepSize; testAmount < usdAmount; testAmount += stepSize) {
+                upwardAmounts.push(Math.floor(testAmount));
+              }
+              upwardAmounts.push(usdAmount); // Always try the original amount
+              
+              // Try upward amounts with high slippage
+              for (const upwardAmount of upwardAmounts) {
+                if (upwardAmount <= maxWorkingAmount) continue;
+                
+                try {
+                  let upwardTokenAmount;
+                  if (isBuy) {
+                    upwardTokenAmount = upwardAmount;
+                  } else {
+                    upwardTokenAmount = baselinePrice && baselinePrice > 0 
+                      ? upwardAmount / baselinePrice 
+                      : upwardAmount / 100;
+                  }
+                  
+                  const upwardRawAmount = Math.floor(upwardTokenAmount * Math.pow(10, quoteInputDecimals));
+                  if (upwardRawAmount <= 0) continue;
+                  
+                  const tryUpwardMsg = `   🔄 Trying upward amount: ${formatUSD(upwardAmount)}...`;
+                  console.log(tryUpwardMsg);
+                  logs.push(tryUpwardMsg);
+                  
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  
+                  const upwardSlippageBps = usdAmount >= 50000000 ? 10000 : (usdAmount >= 10000000 ? 5000 : 500);
+                  const upwardQuote = await getQuote(quoteInputMint, quoteOutputMint, upwardRawAmount, upwardSlippageBps, 2);
+                  
+                  if (upwardQuote?.outAmount && upwardQuote?.inAmount) {
+                    const upwardInputRaw = isBuy ? upwardQuote.outAmount : upwardQuote.inAmount;
+                    const upwardOutputRaw = isBuy ? upwardQuote.inAmount : upwardQuote.outAmount;
+                    
+                    const upwardInputReadable = parseFloat(upwardInputRaw) / Math.pow(10, inputDecimals);
+                    const upwardOutputReadable = parseFloat(upwardOutputRaw) / Math.pow(10, outputDecimals);
+                    
+                    if (isFinite(upwardInputReadable) && upwardInputReadable > 0 && 
+                        isFinite(upwardOutputReadable) && upwardOutputReadable > 0) {
+                      const upwardPrice = upwardOutputReadable / upwardInputReadable;
+                      
+                      if (isFinite(upwardPrice) && upwardPrice > 0 && upwardPrice < 1e10) {
+                        const upwardPriceImpact = Math.abs(((upwardPrice - baselinePrice) / baselinePrice) * 100);
+                        
+                        const existingPoint = depthPoints.find(p => Math.abs(p.tradeUsdValue - upwardAmount) < 1000);
+                        if (!existingPoint) {
+                          depthPoints.push({
+                            price: upwardPrice,
+                            amount: upwardInputReadable,
+                            outputAmount: upwardOutputReadable,
+                            priceImpact: upwardPriceImpact,
+                            slippage: upwardPriceImpact,
+                            tradeUsdValue: upwardAmount,
+                            rawInputAmount: upwardInputRaw,
+                            rawOutputAmount: upwardOutputRaw,
+                          });
+                          
+                          const upwardSuccessMsg = `   ✅ Found higher amount: ${formatUSD(upwardAmount)}, price impact: ${upwardPriceImpact.toFixed(2)}%`;
+                          console.log(upwardSuccessMsg);
+                          logs.push(upwardSuccessMsg);
+                          
+                          maxWorkingAmount = upwardAmount; // Update maximum
+                        }
+                      }
+                    }
+                  }
+                } catch (upwardError) {
+                  // If upward amount fails, we've found the maximum - stop searching
+                  const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
+                  console.log(maxReachedMsg);
+                  logs.push(maxReachedMsg);
+                  break;
+                }
+              }
+            }
           }
         }
         
