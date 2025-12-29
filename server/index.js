@@ -1435,7 +1435,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                 }
               }
               
-            if (bestAmount > maxWorkingAmount) {
+              if (bestAmount > maxWorkingAmount) {
               const finalMaxMsg = `   🎯 Final maximum liquidity: ${formatUSD(bestAmount)}`;
               console.log(finalMaxMsg);
               logs.push(finalMaxMsg);
