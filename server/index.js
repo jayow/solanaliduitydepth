@@ -1654,46 +1654,28 @@ app.get('/api/tokens/search', async (req, res) => {
       
       // Data API returns array directly
       if (!Array.isArray(tokens)) {
-        console.warn(`⚠️ Jupiter Data API returned non-array response for "${query}":`, typeof tokens);
         tokens = [];
-      }
-      
-      console.log(`📦 Raw tokens from Jupiter: ${tokens.length} items`);
-      if (tokens.length > 0) {
-        console.log(`   First token sample:`, JSON.stringify(tokens[0], null, 2).substring(0, 200));
       }
 
       // Normalize token structure
       const normalizedTokens = tokens.map(token => {
-        // Jupiter Data API uses 'id' as the address field
         const address = token.id || token.address || token.mintAddress || token.mint;
-        
-        // Normalize symbol and name (handle case variations)
-        const symbol = (token.symbol || '').trim();
-        const name = (token.name || token.symbol || 'Unknown Token').trim();
-        
         return {
           address: address,
-          symbol: symbol,
-          name: name,
-          decimals: token.decimals !== undefined ? token.decimals : (symbol === 'SOL' ? 9 : 6),
+          symbol: token.symbol || '',
+          name: token.name || token.symbol || 'Unknown Token',
+          decimals: token.decimals !== undefined ? token.decimals : (token.symbol === 'SOL' ? 9 : 6),
           logoURI: token.logoURI || token.logoUri || token.icon || token.image || null,
-          // Enrichment fields from Jupiter Data API
-          icon: token.icon || token.logoURI || token.logoUri || token.image || null,
-          organicScore: token.organicScore || null,
-          organicScoreLabel: token.organicScoreLabel || null,
-          isVerified: token.isVerified || false,
+          icon: token.icon || token.logoURI || token.logoUri || token.image || null, // Ensure icon field is present
+          organicScore: token.organicScore,
+          organicScoreLabel: token.organicScoreLabel,
+          isVerified: token.isVerified || (token.tags && token.tags.includes('verified')) || false,
           tags: token.tags || [],
-          // Keep original fields for reference
-          ...token,
-          // Override with normalized values to ensure consistency
-          address: address,
-          symbol: symbol,
-          name: name
+          ...token, // Keep original fields
+          address, symbol: token.symbol || '', name: token.name || token.symbol || 'Unknown Token' // Override with normalized values
         };
       }).filter(token => {
         // Filter out invalid tokens
-        // Ensure address exists and is valid Solana address format
         return token.address && 
                typeof token.address === 'string' && 
                token.address.length > 0 && 
@@ -1704,12 +1686,6 @@ app.get('/api/tokens/search', async (req, res) => {
       res.json(normalizedTokens);
     } catch (error) {
       console.error(`❌ Token search failed for query "${query}":`, error.message);
-      if (error.response) {
-        console.error(`   Status: ${error.response.status}`);
-        console.error(`   Data:`, error.response.data);
-      } else if (error.request) {
-        console.error(`   No response received from Jupiter API`);
-      }
       // Return empty array on error (don't fail the request)
       res.json([]);
     }
