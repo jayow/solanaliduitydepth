@@ -51,14 +51,14 @@
 }
 
 .credit-link {
-  color: #9AA4B2;
+  color: #3EE6B7;
   text-decoration: none;
   transition: all 150ms ease-out;
   font-weight: 500;
 }
 
 .credit-link:hover {
-  color: #E6EAF0;
+  color: #4DF5C7;
   text-decoration: underline;
 }
 
