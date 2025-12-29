@@ -72,9 +72,13 @@ async function getTokenList() {
   // API plan (free vs paid) does NOT affect token list availability - only rate limits.
   // Jupiter's official token list endpoints (prioritize these)
   // These are the current working endpoints as of 2024
+  // NOTE: datapi.jup.ag/v1/assets/search is a search API (returns limited results), not a list-all API
+  // We prioritize endpoints that return comprehensive token lists
   const tokenEndpoints = [
     'https://token.jup.ag/all',                    // Jupiter's comprehensive token list (ALL tokens - primary source)
     'https://token.jup.ag/strict',                // Jupiter's strict token list (verified tokens only)
+    // Data API - used by Jupiter frontend for search, but limited results
+    'https://datapi.jup.ag/v1/assets/search?query=', // Jupiter's Data API (search - returns limited results)
     // Legacy/deprecated endpoints (kept as fallbacks but may not work)
     'https://tokens.jup.ag/all',                  // Alternative Jupiter endpoint
     'https://tokens.jup.ag/tokens_with_markets',  // All tradable tokens with markets
