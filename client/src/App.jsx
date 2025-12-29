@@ -248,7 +248,6 @@ function App() {
 
                     <TokenSelector
                       label="Output Token"
-                      tokens={tokens}
                       selectedToken={outputToken}
                       onSelect={setOutputToken}
                       isSelected={focusedPanel === 'output'}
@@ -360,7 +359,6 @@ function App() {
 
                     <TokenSelector
                       label="Output Token"
-                      tokens={tokens}
                       selectedToken={outputToken}
                       onSelect={setOutputToken}
                       isSelected={focusedPanel === 'output'}
@@ -368,18 +366,6 @@ function App() {
                     />
                   </div>
                 </div>
-                {tokens.length > 0 && (
-                  <div className="token-count-info">
-                    <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>
-                    <button 
-                      className="refresh-tokens-btn" 
-                      onClick={() => fetchTokens(true)}
-                      title="Refresh token list from Jupiter"
-                    >
-                      🔄 Refresh
-                    </button>
-                  </div>
-                )}
                 {loading && (
                   <div className="loading">
                     <div className="spinner"></div>
