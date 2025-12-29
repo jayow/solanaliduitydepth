@@ -1,6 +1,7 @@
 {
   "name": "solana-liquidity-depth",
   "version": "1.0.0",
+  "type": "module",
   "description": "Solana liquidity depth visualization using Jupiter API",
   "main": "server/index.js",
   "scripts": {
