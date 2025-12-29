@@ -7,7 +7,10 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import https from 'https';
 
-dotenv.config();
+// Only load .env file if not in Vercel environment
+if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
+  dotenv.config();
+}
 
 // Log SSL configuration on startup
 console.log('🔒 SSL Configuration:', {
