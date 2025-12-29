@@ -60,12 +60,8 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (inputToken && outputToken) {
-      fetchLiquidityDepth();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputToken, outputToken]);
+  // Removed automatic calculation on token selection
+  // User must manually click "Calculate" button to run liquidity depth calculation
 
   const fetchTokens = async (refresh = false) => {
     setLoadingTokens(true);
@@ -279,6 +275,18 @@ function App() {
                     />
                     </div>
                   </div>
+                  {inputToken && outputToken && !loading && (
+                    <div className="calculate-button-container">
+                      <button 
+                        className="calculate-btn" 
+                        onClick={fetchLiquidityDepth}
+                        disabled={!inputToken || !outputToken}
+                        title="Calculate liquidity depth for selected tokens"
+                      >
+                        📊 Calculate Liquidity Depth
+                      </button>
+                    </div>
+                  )}
                   {tokens.length > 0 && (
                     <div className="token-count-info">
                       <span>{tokens.length} token{tokens.length !== 1 ? 's' : ''} available</span>

@@ -235,6 +235,41 @@
   transform: translateY(0px);
 }
 
+.calculate-button-container {
+  margin-top: 18px;
+  width: 100%;
+}
+
+.calculate-btn {
+  width: 100%;
+  padding: 14px 20px;
+  background: #5C6F3A;
+  color: #0B0F14;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.calculate-btn:hover:not(:disabled) {
+  background: #6B7F45;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(92, 111, 58, 0.3);
+}
+
+.calculate-btn:active:not(:disabled) {
+  transform: translateY(0px);
+}
+
+.calculate-btn:disabled {
+  background: #3B4427;
+  color: #8F9A6B;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .loading {
   display: flex;
   flex-direction: column;
