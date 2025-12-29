@@ -1464,9 +1464,8 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         logs.push(skipMsg);
         continue; // Skip to next iteration
       }
-    }
-    
-    // Log detailed error info for other errors (outside routing error handling)
+      
+      // Log detailed error info for other errors
       if (statusCode === 429) {
         const rateLimitMsg = `⚠️ Rate limited for ${formatUSD(usdAmount)} - exhausted all retries`;
         console.error(rateLimitMsg);
