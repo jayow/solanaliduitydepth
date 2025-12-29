@@ -1862,10 +1862,16 @@ app.get('/api/test-quote', async (req, res) => {
   }
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`\n🚀 Server running on http://127.0.0.1:${PORT}`);
-  console.log(`📡 Jupiter API: ${JUPITER_QUOTE_URL} (with API key)`);
-  console.log(`🔗 Test endpoint: http://127.0.0.1:${PORT}/api/jupiter-status`);
-  console.log(`\n`);
-});
+// Export the app for Vercel serverless functions
+export default app;
+
+// Only start the server if not running on Vercel
+if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`\n🚀 Server running on http://127.0.0.1:${PORT}`);
+    console.log(`📡 Jupiter API: ${JUPITER_QUOTE_URL} (with API key)`);
+    console.log(`🔗 Test endpoint: http://127.0.0.1:${PORT}/api/jupiter-status`);
+    console.log(`\n`);
+  });
+}
 
