@@ -1205,8 +1205,8 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         // Track the maximum working amount found so we can search upward from it
         let maxWorkingAmount = 0;
         let foundWorkingAmount = false;
-          
-          for (const smallerAmount of smallerAmounts) {
+        
+        for (const smallerAmount of smallerAmounts) {
             // Don't break early - continue searching to find the maximum working amount
             // We want to test all amounts to find the true liquidity limit
             
