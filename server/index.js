@@ -822,8 +822,11 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         let priceImpact = 0;
         
         if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
-          // Jupiter returns priceImpactPct as a decimal (e.g., 0.8965 = 89.65%)
-          // Convert to percentage
+          // Jupiter returns priceImpactPct as a decimal (e.g., 0.9784 = 97.84%)
+          // API always returns positive values, regardless of buy/sell direction
+          // NOTE: Jupiter frontend may show different values (e.g., -65% vs API's 97.84%)
+          // This can occur if frontend uses different baseline price, calculation method, or cached data
+          // The API priceImpactPct is the authoritative source for our implementation
           priceImpact = Math.abs(parseFloat(quote.priceImpactPct)) * 100;
           console.log(`📊 Using Jupiter's priceImpactPct: ${priceImpact.toFixed(2)}%`);
         } else if (baselinePrice && baselinePrice > 0) {
