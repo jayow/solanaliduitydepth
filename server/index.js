@@ -878,16 +878,28 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       const statusCode = error.response?.status;
       const fullErrorData = error.response?.data;
       
-      // Handle "route plan does not consume all the amount" error
-      // This means Jupiter can route part of the amount but not all of it
-      // We should try progressively smaller amounts to find the maximum routable amount
-      if (errorCode === 'ROUTE_PLAN_DOES_NOT_CONSUME_ALL_THE_AMOUNT' || 
-          errorMsg?.includes('does not consume all the amount')) {
-        const partialFillMsg = `⚠️ Jupiter cannot route full ${formatUSD(usdAmount)} - route plan doesn't consume all amount`;
+      // Check if this is a routing/liquidity error that might benefit from trying smaller amounts
+      // Jupiter's frontend handles any routing error by trying progressively smaller amounts
+      // This matches Jupiter's behavior: when large trades fail, try smaller amounts
+      const isRoutingError = 
+        errorCode === 'ROUTE_PLAN_DOES_NOT_CONSUME_ALL_THE_AMOUNT' ||
+        errorMsg?.includes('does not consume all the amount') ||
+        errorMsg?.toLowerCase().includes('no route') ||
+        errorMsg?.toLowerCase().includes('cannot route') ||
+        errorMsg?.toLowerCase().includes('insufficient liquidity') ||
+        errorMsg?.toLowerCase().includes('liquidity') ||
+        (statusCode === 400 && usdAmount >= 10000000); // For large amounts, 400 often means routing issue
+      
+      // Handle routing errors by trying progressively smaller amounts
+      // This matches how Jupiter's frontend handles tokens not in the official list
+      if (isRoutingError) {
+        const partialFillMsg = `⚠️ Jupiter cannot route ${formatUSD(usdAmount)} - ${errorMsg}`;
         console.warn(partialFillMsg);
         logs.push(partialFillMsg);
         
-        // For large amounts ($10M+), try progressively smaller amounts to find maximum
+        // For large amounts ($10M+), try progressively smaller amounts to find maximum routable amount
+        // This matches Jupiter's frontend behavior: when routing fails, try smaller amounts
+        // Tokens not in Jupiter's official list often fail at large amounts but work at smaller sizes
         if (usdAmount >= 10000000) {
           const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
           console.log(trySmallerMsg);
