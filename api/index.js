@@ -12,10 +12,17 @@ export default async (req, res) => {
     console.error('❌ JUPITER_API_KEY is NOT configured in Vercel environment');
   }
   
+  // Vercel rewrites /api/* to /api, so we need to adjust the path
+  // Remove /api prefix from the URL path so Express routes work correctly
+  const originalUrl = req.url;
+  if (originalUrl.startsWith('/api')) {
+    req.url = originalUrl.replace('/api', '') || '/';
+  }
+  
   // Vercel serverless functions need to handle the request properly
   // The Express app will handle routing internally
   try {
-    await app(req, res);
+    app(req, res);
   } catch (error) {
     console.error('Error in serverless function:', error);
     if (!res.headersSent) {
