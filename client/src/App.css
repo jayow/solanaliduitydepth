@@ -425,6 +425,31 @@
   margin-right: 0;
 }
 
+.app-footer {
+  max-width: 1240px;
+  margin: 2rem auto 0;
+  padding: 18px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.donation-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9AA4B2;
+  margin: 0;
+  padding: 0;
+}
+
+.donation-address {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #3EE6B7;
+  word-break: break-all;
+  user-select: all;
+  cursor: text;
+}
+
 .view-mode-btn {
   background: transparent;
   border: none;
