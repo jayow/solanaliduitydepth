@@ -212,9 +212,48 @@
   gap: 0.25rem;
 }
 
+.token-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.token-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.token-icon-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1A2433;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9AA4B2;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
 .token-main-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.token-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .token-item .token-symbol {
@@ -245,6 +284,45 @@
   font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 1.4;
+}
+
+.token-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22C55E;
+  color: #0B0F14;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.token-score {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.token-score-high {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+}
+
+.token-score-medium {
+  background: rgba(234, 179, 8, 0.15);
+  color: #EAB308;
+}
+
+.token-score-low {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
 }
 
 .no-tokens {
