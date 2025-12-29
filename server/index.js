@@ -1654,7 +1654,13 @@ app.get('/api/tokens/search', async (req, res) => {
       
       // Data API returns array directly
       if (!Array.isArray(tokens)) {
+        console.warn(`⚠️ Jupiter Data API returned non-array response for "${query}":`, typeof tokens);
         tokens = [];
+      }
+      
+      console.log(`📦 Raw tokens from Jupiter: ${tokens.length} items`);
+      if (tokens.length > 0) {
+        console.log(`   First token sample:`, JSON.stringify(tokens[0], null, 2).substring(0, 200));
       }
 
       // Normalize token structure
@@ -1698,6 +1704,12 @@ app.get('/api/tokens/search', async (req, res) => {
       res.json(normalizedTokens);
     } catch (error) {
       console.error(`❌ Token search failed for query "${query}":`, error.message);
+      if (error.response) {
+        console.error(`   Status: ${error.response.status}`);
+        console.error(`   Data:`, error.response.data);
+      } else if (error.request) {
+        console.error(`   No response received from Jupiter API`);
+      }
       // Return empty array on error (don't fail the request)
       res.json([]);
     }
