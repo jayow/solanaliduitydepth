@@ -70,14 +70,16 @@ async function getTokenList() {
   // (at least $500 liquidity, <30% price impact). Tokens like JUP, USX, eUSX may be routable
   // but not in the official list, so we manually add them via importantTokens.
   // API plan (free vs paid) does NOT affect token list availability - only rate limits.
+  // Jupiter's official token list endpoints (prioritize these)
+  // These are the current working endpoints as of 2024
   const tokenEndpoints = [
-    'https://tokens.jup.ag/tokens_with_markets',  // All tradable tokens with markets (most comprehensive)
-    'https://token.jup.ag/all',                    // Jupiter's comprehensive token list (primary) - includes all routable tokens
-    'https://api.jup.ag/tokens/v1/all',           // Jupiter API v1 endpoint (official API)
-    'https://token.jup.ag/strict',                // Jupiter's strict token list (verified tokens only - meets liquidity requirements)
+    'https://token.jup.ag/all',                    // Jupiter's comprehensive token list (ALL tokens - primary source)
+    'https://token.jup.ag/strict',                // Jupiter's strict token list (verified tokens only)
+    // Legacy/deprecated endpoints (kept as fallbacks but may not work)
     'https://tokens.jup.ag/all',                  // Alternative Jupiter endpoint
+    'https://tokens.jup.ag/tokens_with_markets',  // All tradable tokens with markets
     'https://tokens.jup.ag/tokens?tags=verified', // Verified tokens only
-    JUPITER_TOKEN_URL,                            // Lite API endpoint
+    // Fallback to Solana official token list only if Jupiter endpoints fail
     'https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/solana.tokenlist.json', // Solana official token list (fallback)
     'https://cdn.jsdelivr.net/gh/solana-labs/token-list@main/src/tokens/solana.tokenlist.json', // CDN version (fallback)
   ];
