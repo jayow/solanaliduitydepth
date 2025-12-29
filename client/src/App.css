@@ -243,7 +243,7 @@
 .calculate-btn {
   width: 100%;
   padding: 14px 20px;
-  background: #5C6F3A;
+  background: #3EE6B7;
   color: #0B0F14;
   border: none;
   border-radius: 12px;
@@ -254,18 +254,19 @@
 }
 
 .calculate-btn:hover:not(:disabled) {
-  background: #6B7F45;
+  background: #4DF5C7;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(92, 111, 58, 0.3);
+  box-shadow: 0 4px 12px rgba(62, 230, 183, 0.3);
 }
 
 .calculate-btn:active:not(:disabled) {
   transform: translateY(0px);
+  background: #35D4A5;
 }
 
 .calculate-btn:disabled {
-  background: #3B4427;
-  color: #8F9A6B;
+  background: rgba(62, 230, 183, 0.2);
+  color: rgba(11, 15, 20, 0.5);
   cursor: not-allowed;
   opacity: 0.6;
 }
