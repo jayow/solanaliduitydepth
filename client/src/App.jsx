@@ -22,6 +22,7 @@ function App() {
   const [jupiterStatus, setJupiterStatus] = useState(null); // 'checking', 'connected', 'error'
   const [statusMessage, setStatusMessage] = useState('');
   const [elapsedTime, setElapsedTime] = useState(0); // Time elapsed in seconds
+  const [abortController, setAbortController] = useState(null); // For canceling requests
 
   useEffect(() => {
     // No longer fetch all tokens on load - search as user types instead
@@ -92,8 +93,22 @@ function App() {
     setOutputToken(temp);
   };
 
+  const cancelCalculation = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+      setLoading(false);
+      setStatusMessage('Calculation cancelled by user.');
+      setError('Calculation was cancelled.');
+    }
+  };
+
   const fetchLiquidityDepth = async () => {
     if (!inputToken || !outputToken) return;
+
+    // Create new AbortController for this request
+    const controller = new AbortController();
+    setAbortController(controller);
 
     setLoading(true);
     setError(null);
@@ -169,6 +184,14 @@ function App() {
         setStatusMessage(`Loaded ${totalPoints} data points (${buyDepthData.length} buy, ${sellDepthData.length} sell)`);
       }
     } catch (err) {
+      // Check if request was cancelled
+      if (axios.isCancel(err) || err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
+        console.log('Request cancelled by user');
+        setError('Calculation cancelled.');
+        setStatusMessage('Calculation was cancelled.');
+        return; // Don't set loading to false here, already handled in cancelCalculation
+      }
+      
       console.error('Error fetching liquidity depth:', err);
       let errorMsg = 'Unknown error';
       
@@ -183,6 +206,7 @@ function App() {
       setError(`Failed to fetch liquidity depth: ${errorMsg}`);
       setStatusMessage(`Error: ${errorMsg}`);
     } finally {
+      setAbortController(null); // Clear abort controller
       // Clear timer
       if (timerInterval) {
         clearInterval(timerInterval);
@@ -267,6 +291,12 @@ function App() {
                       <p className="loading-subtext">
                         Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
                       </p>
+                      <button 
+                        className="cancel-btn" 
+                        onClick={cancelCalculation}
+                      >
+                        Cancel Calculation
+                      </button>
                     </div>
                   )}
                   {!loading && statusMessage && (
