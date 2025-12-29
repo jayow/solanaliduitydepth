@@ -815,8 +815,10 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         }
         
         // Use Jupiter's priceImpactPct directly - it's the most accurate
-        // Jupiter's API calculates this using their routing algorithm and it matches their frontend
-        // Our manual calculation might differ due to baseline price estimation differences
+        // Jupiter's API calculates this using their routing algorithm
+        // NOTE: There may be discrepancies between API priceImpactPct and Jupiter frontend display
+        // This can occur if Jupiter frontend uses a different calculation method, baseline, or cached data
+        // The API priceImpactPct is the authoritative source for our implementation
         let priceImpact = 0;
         
         if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
