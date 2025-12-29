@@ -35,10 +35,10 @@ function App() {
       const response = await axios.get(`${API_BASE}/jupiter-status`);
       if (response.data.status === 'connected') {
         setJupiterStatus('connected');
-        setStatusMessage(`✅ Connected to Jupiter API (${response.data.responseTime})`);
+        setStatusMessage(`Connected to Jupiter API (${response.data.responseTime})`);
       } else {
         setJupiterStatus('error');
-        setStatusMessage(`❌ Jupiter API error: ${response.data.message || 'Unknown error'}`);
+        setStatusMessage(`Jupiter API error: ${response.data.message || 'Unknown error'}`);
       }
     } catch (err) {
       const statusCode = err.response?.status;
@@ -46,7 +46,7 @@ function App() {
       
       if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error') || err.message?.includes('Failed to fetch')) {
         setJupiterStatus('error');
-        setStatusMessage(`❌ Cannot connect to backend server. Make sure the server is running on port 3001.`);
+        setStatusMessage(`Cannot connect to backend server. Make sure the server is running on port 3001.`);
       } else if (statusCode === 429 || responseData?.status === 'rate_limited') {
         setJupiterStatus('rate_limited');
         const retryAfter = responseData?.retryAfter || 60;
@@ -54,7 +54,7 @@ function App() {
       } else {
         setJupiterStatus('error');
         const errorMsg = responseData?.message || responseData?.error || err.message || 'Unknown error';
-        setStatusMessage(`❌ Cannot connect to Jupiter API: ${errorMsg}`);
+        setStatusMessage(`Cannot connect to Jupiter API: ${errorMsg}`);
       }
       console.error('Jupiter API status check failed:', err);
     }
@@ -99,9 +99,9 @@ function App() {
       
       if (tokenList.length === 0) {
         setError('No tokens found. Please check your connection.');
-        setStatusMessage('⚠️ No tokens received from API');
+        setStatusMessage('No tokens received from API');
       } else {
-        setStatusMessage(`✅ Loaded ${tokenList.length} tokens${tokenList.length <= 10 ? ' (using fallback list)' : ''}`);
+        setStatusMessage(`Loaded ${tokenList.length} tokens${tokenList.length <= 10 ? ' (using fallback list)' : ''}`);
       }
     } catch (err) {
       console.error('Error fetching tokens:', err);
@@ -116,7 +116,7 @@ function App() {
       }
       
       setError(`Failed to load tokens: ${errorMsg}`);
-      setStatusMessage(`❌ Failed to load tokens: ${errorMsg}`);
+      setStatusMessage(`Failed to load tokens: ${errorMsg}`);
     } finally {
       setLoadingTokens(false);
     }
@@ -181,11 +181,11 @@ function App() {
       setBaselinePrice(priceToUse);
       
       if (buyDepthData.length === 0 && sellDepthData.length === 0) {
-        setStatusMessage('⚠️ No liquidity data returned. Check server logs for details.');
+        setStatusMessage('No liquidity data returned. Check server logs for details.');
         setError('No liquidity data available. The API may be rate-limited or the pair may have no liquidity.');
       } else {
         const totalPoints = buyDepthData.length + sellDepthData.length;
-        setStatusMessage(`✅ Loaded ${totalPoints} data points (${buyDepthData.length} buy, ${sellDepthData.length} sell)`);
+        setStatusMessage(`Loaded ${totalPoints} data points (${buyDepthData.length} buy, ${sellDepthData.length} sell)`);
       }
     } catch (err) {
       console.error('Error fetching liquidity depth:', err);
@@ -200,7 +200,7 @@ function App() {
       }
       
       setError(`Failed to fetch liquidity depth: ${errorMsg}`);
-      setStatusMessage(`❌ Error: ${errorMsg}`);
+      setStatusMessage(`Error: ${errorMsg}`);
     } finally {
       // Clear timer
       if (timerInterval) {
@@ -225,7 +225,7 @@ function App() {
         </div>
         <div></div>
         <p className="app-credit">
-          Made with <span style={{ color: '#EF4444' }}>❤️</span> by{' '}
+          Made with love by{' '}
           <a 
             href="https://twitter.com/jayowtrades" 
             target="_blank" 
@@ -283,7 +283,7 @@ function App() {
                         disabled={!inputToken || !outputToken}
                         title="Calculate liquidity depth for selected tokens"
                       >
-                        📊 Calculate Liquidity Depth
+                        Calculate Liquidity Depth
                       </button>
                     </div>
                   )}
@@ -295,7 +295,7 @@ function App() {
                         onClick={() => fetchTokens(true)}
                         title="Refresh token list from Jupiter"
                       >
-                        🔄 Refresh
+                        Refresh
                       </button>
                     </div>
                   )}
@@ -304,7 +304,7 @@ function App() {
                       <div className="spinner"></div>
                       <p>{statusMessage || 'Calculating liquidity depth...'}</p>
                       <p className="loading-subtext">
-                        ⏱️ Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
+                        Time elapsed: <strong>{elapsedTime >= 60 ? `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s` : `${elapsedTime}s`}</strong> | This may take 10-30 seconds as we test multiple trade sizes...
                       </p>
                     </div>
                   )}
@@ -322,7 +322,7 @@ function App() {
                           onClick={checkJupiterStatus}
                           title="Retry connection to Jupiter API"
                         >
-                          🔄 Retry
+                          Retry
                         </button>
                       )}
                     </div>
@@ -341,13 +341,13 @@ function App() {
                       className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
                       onClick={() => setViewMode('table')}
                     >
-                      📊 Table View
+                      Table View
                     </button>
                     <button 
                       className={`view-mode-btn ${viewMode === 'chart' ? 'active' : ''}`}
                       onClick={() => setViewMode('chart')}
                     >
-                      📈 Chart View
+                      Chart View
                     </button>
                   </div>
 

@@ -262,7 +262,7 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
           )}
           {hasDataAboveCap && (
             <span className="chart-meta" style={{ color: '#ef4444' }}>
-              ⚠️ Some data exceeds cap (max: {maxPriceImpact.toFixed(1)}%)
+              Some data exceeds cap (max: {maxPriceImpact.toFixed(1)}%)
             </span>
           )}
         </div>
