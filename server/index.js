@@ -1659,12 +1659,18 @@ app.get('/api/tokens/search', async (req, res) => {
 
       // Normalize token structure
       const normalizedTokens = tokens.map(token => {
+        // Jupiter Data API uses 'id' as the address field
         const address = token.id || token.address || token.mintAddress || token.mint;
+        
+        // Normalize symbol and name (handle case variations)
+        const symbol = (token.symbol || '').trim();
+        const name = (token.name || token.symbol || 'Unknown Token').trim();
+        
         return {
           address: address,
-          symbol: token.symbol || '',
-          name: token.name || token.symbol || 'Unknown Token',
-          decimals: token.decimals !== undefined ? token.decimals : (token.symbol === 'SOL' ? 9 : 6),
+          symbol: symbol,
+          name: name,
+          decimals: token.decimals !== undefined ? token.decimals : (symbol === 'SOL' ? 9 : 6),
           logoURI: token.logoURI || token.logoUri || token.icon || token.image || null,
           // Enrichment fields from Jupiter Data API
           icon: token.icon || token.logoURI || token.logoUri || token.image || null,
@@ -1672,11 +1678,16 @@ app.get('/api/tokens/search', async (req, res) => {
           organicScoreLabel: token.organicScoreLabel || null,
           isVerified: token.isVerified || false,
           tags: token.tags || [],
-          ...token, // Keep original fields
-          address, symbol: token.symbol || '', name: token.name || token.symbol || 'Unknown Token' // Override with normalized values
+          // Keep original fields for reference
+          ...token,
+          // Override with normalized values to ensure consistency
+          address: address,
+          symbol: symbol,
+          name: name
         };
       }).filter(token => {
         // Filter out invalid tokens
+        // Ensure address exists and is valid Solana address format
         return token.address && 
                typeof token.address === 'string' && 
                token.address.length > 0 && 
