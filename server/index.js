@@ -985,34 +985,48 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       
       // Handle routing errors by trying progressively smaller amounts
       // This matches how Jupiter's frontend handles tokens not in the official list
+      // Apply to ALL trade sizes to ensure we test maximum routable amounts for all tokens
       if (isRoutingError) {
         const partialFillMsg = `⚠️ Jupiter cannot route ${formatUSD(usdAmount)} - ${errorMsg}`;
         console.warn(partialFillMsg);
         logs.push(partialFillMsg);
         
-        // For large amounts ($10M+), try progressively smaller amounts to find maximum routable amount
+        // For ALL amounts, try progressively smaller amounts to find maximum routable amount
         // This matches Jupiter's frontend behavior: when routing fails, try smaller amounts
         // Tokens not in Jupiter's official list often fail at large amounts but work at smaller sizes
-        if (usdAmount >= 10000000) {
-          const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
-          console.log(trySmallerMsg);
-          logs.push(trySmallerMsg);
-          
-          // Use binary search approach to find maximum routable amount
-          // Start with larger steps, then narrow down to find exact maximum
-          // This ensures we find the true liquidity limit, not just any working amount
-          let smallerAmounts;
-          if (usdAmount >= 50000000) {
-            // For $50M+, try: 45M, 40M, 35M, 30M, 25M, 20M, 15M, 12M, 11M, 10.5M, 10M
-            // Then continue searching upward from last working amount
-            smallerAmounts = [45000000, 40000000, 35000000, 30000000, 25000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
-          } else if (usdAmount >= 10000000) {
-            // For $10M+, try granular amounts to find exact maximum
-            // Try larger amounts first, then smaller
-            smallerAmounts = [9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000, 4500000, 4000000, 3500000, 3000000, 2500000, 2000000];
-          } else {
-            smallerAmounts = [];
-          }
+        // Apply this logic to ALL trade sizes to guarantee we test max trade sizes for all tokens
+        const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
+        console.log(trySmallerMsg);
+        logs.push(trySmallerMsg);
+        
+        // Use binary search approach to find maximum routable amount
+        // Start with larger steps, then narrow down to find exact maximum
+        // This ensures we find the true liquidity limit, not just any working amount
+        // Generate smaller amounts based on the target amount
+        let smallerAmounts = [];
+        
+        if (usdAmount >= 50000000) {
+          // For $50M+, try: 45M, 40M, 35M, 30M, 25M, 20M, 15M, 12M, 11M, 10.5M, 10M
+          smallerAmounts = [45000000, 40000000, 35000000, 30000000, 25000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
+        } else if (usdAmount >= 10000000) {
+          // For $10M+, try granular amounts to find exact maximum
+          smallerAmounts = [9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000, 4500000, 4000000, 3500000, 3000000, 2500000, 2000000];
+        } else if (usdAmount >= 1000000) {
+          // For $1M+, try: 950K, 900K, 850K, 800K, 750K, 700K, 650K, 600K, 550K, 500K, 450K, 400K, 350K, 300K, 250K, 200K
+          smallerAmounts = [950000, 900000, 850000, 800000, 750000, 700000, 650000, 600000, 550000, 500000, 450000, 400000, 350000, 300000, 250000, 200000];
+        } else if (usdAmount >= 100000) {
+          // For $100K+, try: 95K, 90K, 85K, 80K, 75K, 70K, 65K, 60K, 55K, 50K, 45K, 40K, 35K, 30K, 25K, 20K
+          smallerAmounts = [95000, 90000, 85000, 80000, 75000, 70000, 65000, 60000, 55000, 50000, 45000, 40000, 35000, 30000, 25000, 20000];
+        } else if (usdAmount >= 10000) {
+          // For $10K+, try: 9.5K, 9K, 8.5K, 8K, 7.5K, 7K, 6.5K, 6K, 5.5K, 5K, 4.5K, 4K, 3.5K, 3K, 2.5K, 2K
+          smallerAmounts = [9500, 9000, 8500, 8000, 7500, 7000, 6500, 6000, 5500, 5000, 4500, 4000, 3500, 3000, 2500, 2000];
+        } else if (usdAmount >= 1000) {
+          // For $1K+, try: 950, 900, 850, 800, 750, 700, 650, 600, 550, 500
+          smallerAmounts = [950, 900, 850, 800, 750, 700, 650, 600, 550, 500];
+        } else if (usdAmount >= 500) {
+          // For $500+, try: 450, 400, 350, 300, 250, 200, 150, 100
+          smallerAmounts = [450, 400, 350, 300, 250, 200, 150, 100];
+        }
           
           // Track the maximum working amount found so we can search upward from it
           let maxWorkingAmount = 0;
