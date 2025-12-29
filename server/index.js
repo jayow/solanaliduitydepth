@@ -749,17 +749,90 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       rawAmount = Math.floor(tokenAmount * Math.pow(10, quoteInputDecimals));
       
       // Check for safe integer limits (JavaScript's MAX_SAFE_INTEGER)
+      // For low-priced tokens like BONK, large USD amounts can exceed MAX_SAFE_INTEGER
+      // In this case, calculate the maximum safe USD amount and try smaller amounts
       if (rawAmount > Number.MAX_SAFE_INTEGER) {
-        const errorMsg = `Raw amount exceeds MAX_SAFE_INTEGER: ${rawAmount.toLocaleString()} > ${Number.MAX_SAFE_INTEGER.toLocaleString()}`;
-        console.error(`❌ ${errorMsg} for ${formatUSD(usdAmount)}`);
-        logs.push(`❌ ${errorMsg}`);
-        errors.push({
-          tradeSize: usdAmount,
-          tradeSizeFormatted: formatUSD(usdAmount),
-          error: errorMsg,
-          statusCode: null,
-          timestamp: new Date().toISOString()
-        });
+        const overflowMsg = `Raw amount exceeds MAX_SAFE_INTEGER for ${formatUSD(usdAmount)}`;
+        console.warn(`⚠️ ${overflowMsg}`);
+        logs.push(`⚠️ ${overflowMsg}`);
+        
+        // Calculate maximum safe USD amount for this token
+        // MAX_SAFE_INTEGER / 10^decimals = max token amount
+        // max token amount * price = max USD amount
+        const maxSafeTokens = Number.MAX_SAFE_INTEGER / Math.pow(10, quoteInputDecimals);
+        let maxSafeUsd;
+        if (isBuy) {
+          maxSafeUsd = maxSafeTokens; // For buying, input is USDC (1:1 with USD)
+        } else {
+          maxSafeUsd = baselinePrice > 0 ? maxSafeTokens * baselinePrice : maxSafeTokens * 0.00001;
+        }
+        
+        console.log(`   💡 Max safe USD for this token: ${formatUSD(maxSafeUsd)}`);
+        logs.push(`   💡 Max safe USD for this token: ${formatUSD(maxSafeUsd)}`);
+        
+        // Generate amounts to try, from max safe down
+        const testAmounts = [];
+        let testVal = Math.floor(maxSafeUsd * 0.95); // Start at 95% of max safe
+        const minTest = Math.max(depthPoints.length > 0 ? depthPoints[depthPoints.length - 1].tradeUsdValue * 1.1 : 500, 500);
+        
+        while (testVal >= minTest && testAmounts.length < 15) {
+          testAmounts.push(testVal);
+          testVal = Math.floor(testVal * 0.7); // 30% reduction each step
+        }
+        
+        if (testAmounts.length > 0) {
+          console.log(`   🔄 Trying ${testAmounts.length} safe amounts: ${testAmounts.slice(0, 5).map(formatUSD).join(', ')}...`);
+          logs.push(`   🔄 Trying ${testAmounts.length} safe amounts...`);
+          
+          for (const testAmount of testAmounts) {
+            // Skip if we already have this amount
+            if (depthPoints.some(p => Math.abs(p.tradeUsdValue - testAmount) < testAmount * 0.05)) continue;
+            
+            try {
+              let testTokenAmount = isBuy ? testAmount : (baselinePrice > 0 ? testAmount / baselinePrice : testAmount / 0.00001);
+              const testRawAmount = Math.floor(testTokenAmount * Math.pow(10, quoteInputDecimals));
+              
+              if (testRawAmount <= 0 || testRawAmount > Number.MAX_SAFE_INTEGER) continue;
+              
+              await new Promise(resolve => setTimeout(resolve, 200));
+              
+              const testSlippage = testAmount >= 1000000 ? 500 : 100;
+              const testQuote = await getQuote(quoteInputMint, quoteOutputMint, testRawAmount, testSlippage, 2);
+              
+              if (testQuote?.outAmount && testQuote?.inAmount) {
+                const inRaw = isBuy ? testQuote.outAmount : testQuote.inAmount;
+                const outRaw = isBuy ? testQuote.inAmount : testQuote.outAmount;
+                const inReadable = parseFloat(inRaw) / Math.pow(10, inputDecimals);
+                const outReadable = parseFloat(outRaw) / Math.pow(10, outputDecimals);
+                
+                if (inReadable > 0 && outReadable > 0) {
+                  const price = outReadable / inReadable;
+                  if (price > 0 && price < 1e10) {
+                    const impact = baselinePrice > 0 ? Math.abs(((price - baselinePrice) / baselinePrice) * 100) : 0;
+                    
+                    depthPoints.push({
+                      price,
+                      amount: inReadable,
+                      outputAmount: outReadable,
+                      priceImpact: impact,
+                      slippage: impact,
+                      tradeUsdValue: testAmount,
+                      rawInputAmount: inRaw,
+                      rawOutputAmount: outRaw,
+                    });
+                    
+                    console.log(`   ✅ ${formatUSD(testAmount)}: impact ${impact.toFixed(2)}%`);
+                    logs.push(`   ✅ ${formatUSD(testAmount)}: impact ${impact.toFixed(2)}%`);
+                  }
+                }
+              }
+            } catch (e) {
+              // Continue to next amount
+            }
+          }
+        }
+        
+        // Skip to next trade size since we've handled this one
         continue;
       }
       
