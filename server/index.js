@@ -114,11 +114,18 @@ async function getTokenList() {
         }
         // Jupiter format: might be array or object with tokens
         else if (Array.isArray(tokens)) {
-          // Already an array
+          // Already an array - this is the most common format for Jupiter endpoints
         }
-        // Object with token addresses as keys
+        // Object with token addresses as keys (e.g., { "mint1": {...}, "mint2": {...} })
         else if (typeof tokens === 'object' && !Array.isArray(tokens)) {
-          tokens = Object.values(tokens);
+          // Check if it's an object with token objects as values
+          const firstValue = Object.values(tokens)[0];
+          if (firstValue && (firstValue.address || firstValue.mintAddress || firstValue.mint || firstValue.id)) {
+            tokens = Object.values(tokens);
+          } else {
+            // Might be a wrapper object, try common keys
+            tokens = tokens.data || tokens.result || tokens.items || Object.values(tokens);
+          }
         }
       }
       
