@@ -749,183 +749,10 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       rawAmount = Math.floor(tokenAmount * Math.pow(10, quoteInputDecimals));
       
       // Check for safe integer limits (JavaScript's MAX_SAFE_INTEGER)
-      // For tokens with low prices and high decimals, large USD amounts can exceed MAX_SAFE_INTEGER
-      // In this case, try progressively smaller amounts to find the maximum routable amount
       if (rawAmount > Number.MAX_SAFE_INTEGER) {
         const errorMsg = `Raw amount exceeds MAX_SAFE_INTEGER: ${rawAmount.toLocaleString()} > ${Number.MAX_SAFE_INTEGER.toLocaleString()}`;
-        console.warn(`⚠️ ${errorMsg} for ${formatUSD(usdAmount)}`);
-        console.warn(`   💡 This token has low price or high decimals. Trying smaller amounts to find maximum routable size...`);
-        logs.push(`⚠️ ${errorMsg}`);
-        logs.push(`   💡 Trying smaller amounts to find maximum routable size...`);
-        
-        // Try progressively smaller amounts to find maximum that doesn't exceed MAX_SAFE_INTEGER
-        // Calculate the maximum safe USD amount based on token price and decimals
-        // MAX_SAFE_INTEGER / (10^decimals) gives us max token amount
-        // Then multiply by baselinePrice to get max USD amount
-        let maxSafeUsdAmount = Number.MAX_SAFE_INTEGER / Math.pow(10, quoteInputDecimals);
-        if (baselinePrice && baselinePrice > 0) {
-          if (isBuy) {
-            // Buying: maxSafeUsdAmount is already in USD (USDC)
-            maxSafeUsdAmount = Math.min(maxSafeUsdAmount, Number.MAX_SAFE_INTEGER / Math.pow(10, quoteInputDecimals));
-          } else {
-            // Selling: convert token amount to USD
-            maxSafeUsdAmount = maxSafeUsdAmount * baselinePrice;
-          }
-        }
-        
-        // Generate smaller amounts to try, starting from maxSafeUsdAmount down
-        // But also ensure we test amounts that represent the full range up to the safe limit
-        const smallerAmounts = [];
-        
-        // Start from the maximum safe amount and work down
-        // IMPORTANT: Always start from maxSafeUsdAmount, not usdAmount, because usdAmount already exceeds MAX_SAFE_INTEGER
-        // For example: BONK max safe is ~$7M, so for $1M/$10M/$50M/$100M, we should start from ~$7M down
-        let startAmount = maxSafeUsdAmount * 0.95; // Always start at 95% of max safe (not usdAmount!)
-        let previousTradeSize = 0;
-        
-        // Find the previous trade size that was successfully tested
-        const sortedPoints = [...depthPoints].sort((a, b) => b.tradeUsdValue - a.tradeUsdValue);
-        if (sortedPoints.length > 0) {
-          previousTradeSize = sortedPoints[0].tradeUsdValue;
-        }
-        
-        // Generate amounts from startAmount down to max(previousTradeSize, 500)
-        // This ensures we test the full range up to MAX_SAFE_INTEGER
-        let testAmount = startAmount;
-        const minAmount = Math.max(previousTradeSize * 1.1, 500); // Test at least 10% above previous, or $500 minimum
-        
-        // Ensure we don't start below minimum
-        if (startAmount < minAmount) {
-          startAmount = minAmount;
-          testAmount = startAmount;
-        }
-        
-        while (testAmount >= minAmount && smallerAmounts.length < 30) {
-          smallerAmounts.push(Math.floor(testAmount));
-          // Reduce by smaller increments to get better coverage
-          if (testAmount > 1000000) {
-            testAmount = testAmount * 0.9; // 10% reduction for large amounts
-          } else if (testAmount > 100000) {
-            testAmount = testAmount * 0.85; // 15% reduction for medium amounts
-          } else {
-            testAmount = testAmount * 0.8; // 20% reduction for small amounts
-          }
-        }
-        
-        // Sort amounts descending so we try largest first (to find maximum)
-        smallerAmounts.sort((a, b) => b - a);
-        
-        if (smallerAmounts.length > 0) {
-          console.log(`   🔄 Trying ${smallerAmounts.length} smaller amounts: ${smallerAmounts.map(s => formatUSD(s)).join(', ')}`);
-          logs.push(`   🔄 Trying ${smallerAmounts.length} smaller amounts...`);
-          
-          let maxWorkingAmount = 0;
-          let foundWorkingAmount = false;
-          
-          // Try all smaller amounts to find the MAXIMUM working amount, not just the first one
-          // This ensures we test the full range up to MAX_SAFE_INTEGER
-          for (const smallerAmount of smallerAmounts) {
-            try {
-              let smallerTokenAmount;
-              if (isBuy) {
-                smallerTokenAmount = smallerAmount;
-              } else {
-                smallerTokenAmount = baselinePrice && baselinePrice > 0 
-                  ? smallerAmount / baselinePrice 
-                  : smallerAmount / 100;
-              }
-              
-              const smallerRawAmount = Math.floor(smallerTokenAmount * Math.pow(10, quoteInputDecimals));
-              
-              if (smallerRawAmount <= 0 || smallerRawAmount > Number.MAX_SAFE_INTEGER) {
-                continue;
-              }
-              
-              const tryMsg = `   🔄 Trying ${formatUSD(smallerAmount)} (raw: ${smallerRawAmount.toLocaleString()})...`;
-              console.log(tryMsg);
-              logs.push(tryMsg);
-              
-              await new Promise(resolve => setTimeout(resolve, 200));
-              
-              // Use appropriate slippage
-              let smallerSlippageBps = 50;
-              if (smallerAmount >= 50000000) {
-                smallerSlippageBps = 10000;
-              } else if (smallerAmount >= 10000000) {
-                smallerSlippageBps = 5000;
-              } else if (smallerAmount >= 1000000) {
-                smallerSlippageBps = 500;
-              } else if (smallerAmount >= 100000) {
-                smallerSlippageBps = 200;
-              } else {
-                smallerSlippageBps = 100;
-              }
-              
-              const smallerQuote = await getQuote(quoteInputMint, quoteOutputMint, smallerRawAmount, smallerSlippageBps, 3);
-              
-              if (smallerQuote?.outAmount && smallerQuote?.inAmount) {
-                const inputAmountRaw = isBuy ? smallerQuote.outAmount : smallerQuote.inAmount;
-                const outputAmountRaw = isBuy ? smallerQuote.inAmount : smallerQuote.outAmount;
-                
-                const inputAmountReadable = parseFloat(inputAmountRaw) / Math.pow(10, inputDecimals);
-                const outputAmountReadable = parseFloat(outputAmountRaw) / Math.pow(10, outputDecimals);
-                
-                if (isFinite(inputAmountReadable) && inputAmountReadable > 0 && 
-                    isFinite(outputAmountReadable) && outputAmountReadable > 0) {
-                  const price = outputAmountReadable / inputAmountReadable;
-                  
-                  if (isFinite(price) && price > 0 && price < 1e10) {
-                    if (!baselinePrice) {
-                      baselinePrice = price;
-                    }
-                    
-                    const priceImpact = Math.abs(((price - baselinePrice) / baselinePrice) * 100);
-                    
-                    // Check if we already have this trade size
-                    const existingPoint = depthPoints.find(p => Math.abs(p.tradeUsdValue - smallerAmount) < 1000);
-                    if (!existingPoint) {
-                      depthPoints.push({
-                        price,
-                        amount: inputAmountReadable,
-                        outputAmount: outputAmountReadable,
-                        priceImpact,
-                        slippage: priceImpact,
-                        tradeUsdValue: smallerAmount,
-                        rawInputAmount: inputAmountRaw,
-                        rawOutputAmount: outputAmountRaw,
-                      });
-                      
-                      const successMsg = `✅ ${formatUSD(smallerAmount)}: ${formatAmount(inputAmountReadable)} -> ${formatAmount(outputAmountReadable)}, price impact: ${priceImpact.toFixed(2)}%`;
-                      console.log(successMsg);
-                      logs.push(successMsg);
-                      foundWorkingAmount = true;
-                      
-                      // Track maximum working amount - don't break, continue to find the highest
-                      if (smallerAmount > maxWorkingAmount) {
-                        maxWorkingAmount = smallerAmount;
-                      }
-                    }
-                  }
-                }
-              }
-            } catch (smallerError) {
-              continue;
-            }
-          }
-          
-          if (maxWorkingAmount > 0) {
-            const maxFoundMsg = `   📊 Maximum safe amount found: ${formatUSD(maxWorkingAmount)} (limited by MAX_SAFE_INTEGER)`;
-            console.log(maxFoundMsg);
-            logs.push(maxFoundMsg);
-          }
-          
-          if (!foundWorkingAmount) {
-            const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)} (exceeds MAX_SAFE_INTEGER)`;
-            console.error(noRouteMsg);
-            logs.push(noRouteMsg);
-          }
-        }
-        
+        console.error(`❌ ${errorMsg} for ${formatUSD(usdAmount)}`);
+        logs.push(`❌ ${errorMsg}`);
         errors.push({
           tradeSize: usdAmount,
           tradeSizeFormatted: formatUSD(usdAmount),
@@ -1146,8 +973,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       
       // Check if this is a routing/liquidity error that might benefit from trying smaller amounts
       // Jupiter's frontend handles any routing error by trying progressively smaller amounts
-      // This matches Jupiter's behavior: when trades fail, try smaller amounts
-      // Apply to ALL trade sizes to ensure we test max trade sizes for all tokens
+      // This matches Jupiter's behavior: when large trades fail, try smaller amounts
       const isRoutingError = 
         errorCode === 'ROUTE_PLAN_DOES_NOT_CONSUME_ALL_THE_AMOUNT' ||
         errorMsg?.includes('does not consume all the amount') ||
@@ -1155,58 +981,44 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         errorMsg?.toLowerCase().includes('cannot route') ||
         errorMsg?.toLowerCase().includes('insufficient liquidity') ||
         errorMsg?.toLowerCase().includes('liquidity') ||
-        (statusCode === 400); // 400 status code often indicates routing/liquidity issues for any trade size
+        (statusCode === 400 && usdAmount >= 10000000); // For large amounts, 400 often means routing issue
       
       // Handle routing errors by trying progressively smaller amounts
       // This matches how Jupiter's frontend handles tokens not in the official list
-      // Apply to ALL trade sizes to ensure we test maximum routable amounts for all tokens
       if (isRoutingError) {
         const partialFillMsg = `⚠️ Jupiter cannot route ${formatUSD(usdAmount)} - ${errorMsg}`;
         console.warn(partialFillMsg);
         logs.push(partialFillMsg);
         
-        // For ALL amounts, try progressively smaller amounts to find maximum routable amount
+        // For large amounts ($10M+), try progressively smaller amounts to find maximum routable amount
         // This matches Jupiter's frontend behavior: when routing fails, try smaller amounts
         // Tokens not in Jupiter's official list often fail at large amounts but work at smaller sizes
-        // Apply this logic to ALL trade sizes to guarantee we test max trade sizes for all tokens
-        const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
-        console.log(trySmallerMsg);
-        logs.push(trySmallerMsg);
-        
-        // Use binary search approach to find maximum routable amount
-        // Start with larger steps, then narrow down to find exact maximum
-        // This ensures we find the true liquidity limit, not just any working amount
-        // Generate smaller amounts based on the target amount
-        let smallerAmounts = [];
-        
-        if (usdAmount >= 50000000) {
-          // For $50M+, try: 45M, 40M, 35M, 30M, 25M, 20M, 15M, 12M, 11M, 10.5M, 10M
-          smallerAmounts = [45000000, 40000000, 35000000, 30000000, 25000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
-        } else if (usdAmount >= 10000000) {
-          // For $10M+, try granular amounts to find exact maximum
-          smallerAmounts = [9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000, 4500000, 4000000, 3500000, 3000000, 2500000, 2000000];
-        } else if (usdAmount >= 1000000) {
-          // For $1M+, try: 950K, 900K, 850K, 800K, 750K, 700K, 650K, 600K, 550K, 500K, 450K, 400K, 350K, 300K, 250K, 200K
-          smallerAmounts = [950000, 900000, 850000, 800000, 750000, 700000, 650000, 600000, 550000, 500000, 450000, 400000, 350000, 300000, 250000, 200000];
-        } else if (usdAmount >= 100000) {
-          // For $100K+, try: 95K, 90K, 85K, 80K, 75K, 70K, 65K, 60K, 55K, 50K, 45K, 40K, 35K, 30K, 25K, 20K
-          smallerAmounts = [95000, 90000, 85000, 80000, 75000, 70000, 65000, 60000, 55000, 50000, 45000, 40000, 35000, 30000, 25000, 20000];
-        } else if (usdAmount >= 10000) {
-          // For $10K+, try: 9.5K, 9K, 8.5K, 8K, 7.5K, 7K, 6.5K, 6K, 5.5K, 5K, 4.5K, 4K, 3.5K, 3K, 2.5K, 2K
-          smallerAmounts = [9500, 9000, 8500, 8000, 7500, 7000, 6500, 6000, 5500, 5000, 4500, 4000, 3500, 3000, 2500, 2000];
-        } else if (usdAmount >= 1000) {
-          // For $1K+, try: 950, 900, 850, 800, 750, 700, 650, 600, 550, 500
-          smallerAmounts = [950, 900, 850, 800, 750, 700, 650, 600, 550, 500];
-        } else if (usdAmount >= 500) {
-          // For $500+, try: 450, 400, 350, 300, 250, 200, 150, 100
-          smallerAmounts = [450, 400, 350, 300, 250, 200, 150, 100];
-        }
-        
-        // Track the maximum working amount found so we can search upward from it
-        let maxWorkingAmount = 0;
-        let foundWorkingAmount = false;
-        
-        for (const smallerAmount of smallerAmounts) {
+        if (usdAmount >= 10000000) {
+          const trySmallerMsg = `   💡 Attempting to find maximum routable amount by trying smaller sizes...`;
+          console.log(trySmallerMsg);
+          logs.push(trySmallerMsg);
+          
+          // Use binary search approach to find maximum routable amount
+          // Start with larger steps, then narrow down to find exact maximum
+          // This ensures we find the true liquidity limit, not just any working amount
+          let smallerAmounts;
+          if (usdAmount >= 50000000) {
+            // For $50M+, try: 45M, 40M, 35M, 30M, 25M, 20M, 15M, 12M, 11M, 10.5M, 10M
+            // Then continue searching upward from last working amount
+            smallerAmounts = [45000000, 40000000, 35000000, 30000000, 25000000, 20000000, 15000000, 12000000, 11000000, 10500000, 10000000];
+          } else if (usdAmount >= 10000000) {
+            // For $10M+, try granular amounts to find exact maximum
+            // Try larger amounts first, then smaller
+            smallerAmounts = [9500000, 9000000, 8500000, 8000000, 7500000, 7000000, 6500000, 6000000, 5500000, 5000000, 4500000, 4000000, 3500000, 3000000, 2500000, 2000000];
+          } else {
+            smallerAmounts = [];
+          }
+          
+          // Track the maximum working amount found so we can search upward from it
+          let maxWorkingAmount = 0;
+          let foundWorkingAmount = false;
+          
+          for (const smallerAmount of smallerAmounts) {
             // Don't break early - continue searching to find the maximum working amount
             // We want to test all amounts to find the true liquidity limit
             
@@ -1294,47 +1106,31 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
               // Continue to next smaller amount
               continue;
             }
-        }
-        
-        if (!foundWorkingAmount) {
-          const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)}`;
-          console.error(noRouteMsg);
-          logs.push(noRouteMsg);
-        } else if (maxWorkingAmount > 0) {
-          // If we found a working amount, try to find the maximum by searching upward
-          // Binary search between maxWorkingAmount and usdAmount to find exact maximum
-          const maxFoundMsg = `   📊 Maximum routable amount found: ${formatUSD(maxWorkingAmount)}`;
-          console.log(maxFoundMsg);
-          logs.push(maxFoundMsg);
+          }
           
-          // Try amounts between maxWorkingAmount and usdAmount to find exact maximum
-          if (usdAmount > maxWorkingAmount) {
+          if (!foundWorkingAmount) {
+            const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)}`;
+            console.error(noRouteMsg);
+            logs.push(noRouteMsg);
+          } else if (maxWorkingAmount > 0) {
+            // If we found a working amount, try to find the maximum by searching upward
+            // Binary search between maxWorkingAmount and usdAmount to find exact maximum
+            const maxFoundMsg = `   📊 Maximum routable amount found: ${formatUSD(maxWorkingAmount)}`;
+            console.log(maxFoundMsg);
+            logs.push(maxFoundMsg);
+            
+            // Try amounts between maxWorkingAmount and usdAmount to find exact maximum
+            if (usdAmount > maxWorkingAmount) {
               const searchUpMsg = `   🔍 Searching upward from ${formatUSD(maxWorkingAmount)} to find exact maximum...`;
               console.log(searchUpMsg);
               logs.push(searchUpMsg);
               
               // Binary search to find exact maximum between maxWorkingAmount and usdAmount
-              // This ensures we find the true liquidity limit for ALL tokens and trade sizes
+              // This ensures we find the true liquidity limit, not just stop at first failure
               let low = maxWorkingAmount;
               let high = usdAmount;
               let bestAmount = maxWorkingAmount;
-              
-              // Determine step size dynamically based on trade size for efficient binary search
-              // This ensures we can find max liquidity for all trade sizes, not just large ones
-              let minStep;
-              if (usdAmount >= 10000000) {
-                minStep = 100000; // $100K steps for $10M+ trades
-              } else if (usdAmount >= 1000000) {
-                minStep = 10000; // $10K steps for $1M+ trades
-              } else if (usdAmount >= 100000) {
-                minStep = 1000; // $1K steps for $100K+ trades
-              } else if (usdAmount >= 10000) {
-                minStep = 100; // $100 steps for $10K+ trades
-              } else if (usdAmount >= 1000) {
-                minStep = 50; // $50 steps for $1K+ trades
-              } else {
-                minStep = 10; // $10 steps for smaller trades
-              }
+              const minStep = 100000; // $100K minimum step size
               
               // Try amounts in smaller increments, using binary search approach
               while (high - low > minStep) {
@@ -1370,20 +1166,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                   
                   await new Promise(resolve => setTimeout(resolve, 200));
                   
-                  // Use appropriate slippage based on trade size for binary search
-                  // This ensures we can find max liquidity for all trade sizes
-                  let testSlippageBps = 50;
-                  if (usdAmount >= 50000000) {
-                    testSlippageBps = 10000; // 100% slippage for very large trades
-                  } else if (usdAmount >= 10000000) {
-                    testSlippageBps = 5000; // 50% slippage for large trades
-                  } else if (usdAmount >= 1000000) {
-                    testSlippageBps = 500; // 5% slippage for $1M+ trades
-                  } else if (usdAmount >= 100000) {
-                    testSlippageBps = 200; // 2% slippage for $100K+ trades
-                  } else {
-                    testSlippageBps = 100; // 1% slippage for smaller trades
-                  }
+                  const testSlippageBps = usdAmount >= 50000000 ? 10000 : (usdAmount >= 10000000 ? 5000 : 500);
                   const testQuote = await getQuote(quoteInputMint, quoteOutputMint, testRawAmount, testSlippageBps, 2);
                   
                   if (testQuote?.outAmount && testQuote?.inAmount) {
@@ -1436,17 +1219,17 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
               }
               
               if (bestAmount > maxWorkingAmount) {
-              const finalMaxMsg = `   🎯 Final maximum liquidity: ${formatUSD(bestAmount)}`;
-              console.log(finalMaxMsg);
-              logs.push(finalMaxMsg);
-            } else {
-              const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
-              console.log(maxReachedMsg);
-              logs.push(maxReachedMsg);
+                const finalMaxMsg = `   🎯 Final maximum liquidity: ${formatUSD(bestAmount)}`;
+                console.log(finalMaxMsg);
+                logs.push(finalMaxMsg);
+              } else {
+                const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
+                console.log(maxReachedMsg);
+                logs.push(maxReachedMsg);
+              }
             }
           }
         }
-      }
         
         // Store error but don't treat it as fatal
         errors.push({
@@ -1465,7 +1248,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
         continue; // Skip to next iteration
       }
       
-      // Log detailed error info for other errors (non-routing errors) (non-routing errors)
+      // Log detailed error info for other errors
       if (statusCode === 429) {
         const rateLimitMsg = `⚠️ Rate limited for ${formatUSD(usdAmount)} - exhausted all retries`;
         console.error(rateLimitMsg);
@@ -1666,9 +1449,10 @@ app.get('/api/tokens/search', async (req, res) => {
           name: token.name || token.symbol || 'Unknown Token',
           decimals: token.decimals !== undefined ? token.decimals : (token.symbol === 'SOL' ? 9 : 6),
           logoURI: token.logoURI || token.logoUri || token.icon || token.image || null,
+          // Enrichment fields from Jupiter Data API
           icon: token.icon || token.logoURI || token.logoUri || token.image || null,
-          organicScore: token.organicScore,
-          organicScoreLabel: token.organicScoreLabel,
+          organicScore: token.organicScore || null,
+          organicScoreLabel: token.organicScoreLabel || null,
           isVerified: token.isVerified || false,
           tags: token.tags || [],
           ...token, // Keep original fields
