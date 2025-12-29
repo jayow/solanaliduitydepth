@@ -1140,11 +1140,27 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
               logs.push(searchUpMsg);
               
               // Binary search to find exact maximum between maxWorkingAmount and usdAmount
-              // This ensures we find the true liquidity limit, not just stop at first failure
+              // This ensures we find the true liquidity limit for ALL tokens and trade sizes
               let low = maxWorkingAmount;
               let high = usdAmount;
               let bestAmount = maxWorkingAmount;
-              const minStep = 100000; // $100K minimum step size
+              
+              // Determine step size dynamically based on trade size for efficient binary search
+              // This ensures we can find max liquidity for all trade sizes, not just large ones
+              let minStep;
+              if (usdAmount >= 10000000) {
+                minStep = 100000; // $100K steps for $10M+ trades
+              } else if (usdAmount >= 1000000) {
+                minStep = 10000; // $10K steps for $1M+ trades
+              } else if (usdAmount >= 100000) {
+                minStep = 1000; // $1K steps for $100K+ trades
+              } else if (usdAmount >= 10000) {
+                minStep = 100; // $100 steps for $10K+ trades
+              } else if (usdAmount >= 1000) {
+                minStep = 50; // $50 steps for $1K+ trades
+              } else {
+                minStep = 10; // $10 steps for smaller trades
+              }
               
               // Try amounts in smaller increments, using binary search approach
               while (high - low > minStep) {
@@ -1180,7 +1196,20 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
                   
                   await new Promise(resolve => setTimeout(resolve, 200));
                   
-                  const testSlippageBps = usdAmount >= 50000000 ? 10000 : (usdAmount >= 10000000 ? 5000 : 500);
+                  // Use appropriate slippage based on trade size for binary search
+                  // This ensures we can find max liquidity for all trade sizes
+                  let testSlippageBps = 50;
+                  if (usdAmount >= 50000000) {
+                    testSlippageBps = 10000; // 100% slippage for very large trades
+                  } else if (usdAmount >= 10000000) {
+                    testSlippageBps = 5000; // 50% slippage for large trades
+                  } else if (usdAmount >= 1000000) {
+                    testSlippageBps = 500; // 5% slippage for $1M+ trades
+                  } else if (usdAmount >= 100000) {
+                    testSlippageBps = 200; // 2% slippage for $100K+ trades
+                  } else {
+                    testSlippageBps = 100; // 1% slippage for smaller trades
+                  }
                   const testQuote = await getQuote(quoteInputMint, quoteOutputMint, testRawAmount, testSlippageBps, 2);
                   
                   if (testQuote?.outAmount && testQuote?.inAmount) {
