@@ -1294,21 +1294,21 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
               // Continue to next smaller amount
               continue;
             }
-          }
+        }
+        
+        if (!foundWorkingAmount) {
+          const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)}`;
+          console.error(noRouteMsg);
+          logs.push(noRouteMsg);
+        } else if (maxWorkingAmount > 0) {
+          // If we found a working amount, try to find the maximum by searching upward
+          // Binary search between maxWorkingAmount and usdAmount to find exact maximum
+          const maxFoundMsg = `   📊 Maximum routable amount found: ${formatUSD(maxWorkingAmount)}`;
+          console.log(maxFoundMsg);
+          logs.push(maxFoundMsg);
           
-          if (!foundWorkingAmount) {
-            const noRouteMsg = `   ❌ Could not find any routable amount for ${formatUSD(usdAmount)}`;
-            console.error(noRouteMsg);
-            logs.push(noRouteMsg);
-          } else if (maxWorkingAmount > 0) {
-            // If we found a working amount, try to find the maximum by searching upward
-            // Binary search between maxWorkingAmount and usdAmount to find exact maximum
-            const maxFoundMsg = `   📊 Maximum routable amount found: ${formatUSD(maxWorkingAmount)}`;
-            console.log(maxFoundMsg);
-            logs.push(maxFoundMsg);
-            
-            // Try amounts between maxWorkingAmount and usdAmount to find exact maximum
-            if (usdAmount > maxWorkingAmount) {
+          // Try amounts between maxWorkingAmount and usdAmount to find exact maximum
+          if (usdAmount > maxWorkingAmount) {
               const searchUpMsg = `   🔍 Searching upward from ${formatUSD(maxWorkingAmount)} to find exact maximum...`;
               console.log(searchUpMsg);
               logs.push(searchUpMsg);
