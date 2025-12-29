@@ -174,12 +174,6 @@ function App() {
     }
   };
 
-  const swapTokens = () => {
-    const temp = inputToken;
-    setInputToken(outputToken);
-    setOutputToken(temp);
-  };
-
   return (
     <div className="app">
       <header className="app-header">
