@@ -114,13 +114,18 @@ async function getTokenList() {
       
       // Handle different response formats
       if (tokens && typeof tokens === 'object') {
+        // Data API format: direct array (datapi.jup.ag/v1/assets/search returns array directly)
+        if (Array.isArray(tokens)) {
+          // Already an array - this is the format for datapi.jup.ag/v1/assets/search
+          // Note: Data API search returns limited results (20 tokens), not comprehensive list
+        }
         // Solana token list format: { tokens: [...] }
-        if (tokens.tokens && Array.isArray(tokens.tokens)) {
+        else if (tokens.tokens && Array.isArray(tokens.tokens)) {
           tokens = tokens.tokens;
         }
-        // Jupiter format: might be array or object with tokens
-        else if (Array.isArray(tokens)) {
-          // Already an array - this is the most common format for Jupiter endpoints
+        // Data API format: { assets: [...] }
+        else if (tokens.assets && Array.isArray(tokens.assets)) {
+          tokens = tokens.assets;
         }
         // Object with token addresses as keys (e.g., { "mint1": {...}, "mint2": {...} })
         else if (typeof tokens === 'object' && !Array.isArray(tokens)) {
@@ -142,10 +147,20 @@ async function getTokenList() {
         let addedCount = 0;
         for (const token of tokens) {
           // Handle different address field names across Jupiter endpoints
-          const address = token.address || token.mintAddress || token.mint || token.id;
+          // Data API uses 'id' field, other endpoints use 'address', 'mintAddress', or 'mint'
+          const address = token.id || token.address || token.mintAddress || token.mint;
           if (address && typeof address === 'string' && address.length > 0 && address.length <= 44) {
             if (!tokenMap.has(address)) {
-              tokenMap.set(address, token);
+              // Normalize token structure - ensure 'address' field exists for consistency
+              const normalizedToken = {
+                ...token,
+                address: address, // Always use 'address' as the primary field
+                symbol: token.symbol || '',
+                name: token.name || token.symbol || 'Unknown Token',
+                decimals: token.decimals !== undefined ? token.decimals : (token.symbol === 'SOL' ? 9 : 6),
+                logoURI: token.logoURI || token.logoUri || token.icon || token.image || null,
+              };
+              tokenMap.set(address, normalizedToken);
               addedCount++;
             }
           }
