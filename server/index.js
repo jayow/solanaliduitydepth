@@ -1046,83 +1046,107 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
               console.log(searchUpMsg);
               logs.push(searchUpMsg);
               
-              // Generate intermediate amounts to test
-              const stepSize = Math.min((usdAmount - maxWorkingAmount) / 10, 5000000); // Max $5M steps
-              const upwardAmounts = [];
-              for (let testAmount = maxWorkingAmount + stepSize; testAmount < usdAmount; testAmount += stepSize) {
-                upwardAmounts.push(Math.floor(testAmount));
-              }
-              upwardAmounts.push(usdAmount); // Always try the original amount
+              // Binary search to find exact maximum between maxWorkingAmount and usdAmount
+              // This ensures we find the true liquidity limit, not just stop at first failure
+              let low = maxWorkingAmount;
+              let high = usdAmount;
+              let bestAmount = maxWorkingAmount;
+              const minStep = 100000; // $100K minimum step size
               
-              // Try upward amounts with high slippage
-              for (const upwardAmount of upwardAmounts) {
-                if (upwardAmount <= maxWorkingAmount) continue;
+              // Try amounts in smaller increments, using binary search approach
+              while (high - low > minStep) {
+                const mid = Math.floor((low + high) / 2);
+                
+                // Skip if we've already tested this amount
+                const alreadyTested = depthPoints.some(p => Math.abs(p.tradeUsdValue - mid) < 1000);
+                if (alreadyTested) {
+                  // If already tested and it worked, move low up
+                  low = mid;
+                  continue;
+                }
                 
                 try {
-                  let upwardTokenAmount;
+                  let testTokenAmount;
                   if (isBuy) {
-                    upwardTokenAmount = upwardAmount;
+                    testTokenAmount = mid;
                   } else {
-                    upwardTokenAmount = baselinePrice && baselinePrice > 0 
-                      ? upwardAmount / baselinePrice 
-                      : upwardAmount / 100;
+                    testTokenAmount = baselinePrice && baselinePrice > 0 
+                      ? mid / baselinePrice 
+                      : mid / 100;
                   }
                   
-                  const upwardRawAmount = Math.floor(upwardTokenAmount * Math.pow(10, quoteInputDecimals));
-                  if (upwardRawAmount <= 0) continue;
+                  const testRawAmount = Math.floor(testTokenAmount * Math.pow(10, quoteInputDecimals));
+                  if (testRawAmount <= 0) {
+                    high = mid;
+                    continue;
+                  }
                   
-                  const tryUpwardMsg = `   🔄 Trying upward amount: ${formatUSD(upwardAmount)}...`;
+                  const tryUpwardMsg = `   🔄 Binary search: Trying ${formatUSD(mid)} (range: ${formatUSD(low)} - ${formatUSD(high)})...`;
                   console.log(tryUpwardMsg);
                   logs.push(tryUpwardMsg);
                   
                   await new Promise(resolve => setTimeout(resolve, 200));
                   
-                  const upwardSlippageBps = usdAmount >= 50000000 ? 10000 : (usdAmount >= 10000000 ? 5000 : 500);
-                  const upwardQuote = await getQuote(quoteInputMint, quoteOutputMint, upwardRawAmount, upwardSlippageBps, 2);
+                  const testSlippageBps = usdAmount >= 50000000 ? 10000 : (usdAmount >= 10000000 ? 5000 : 500);
+                  const testQuote = await getQuote(quoteInputMint, quoteOutputMint, testRawAmount, testSlippageBps, 2);
                   
-                  if (upwardQuote?.outAmount && upwardQuote?.inAmount) {
-                    const upwardInputRaw = isBuy ? upwardQuote.outAmount : upwardQuote.inAmount;
-                    const upwardOutputRaw = isBuy ? upwardQuote.inAmount : upwardQuote.outAmount;
+                  if (testQuote?.outAmount && testQuote?.inAmount) {
+                    const testInputRaw = isBuy ? testQuote.outAmount : testQuote.inAmount;
+                    const testOutputRaw = isBuy ? testQuote.inAmount : testQuote.outAmount;
                     
-                    const upwardInputReadable = parseFloat(upwardInputRaw) / Math.pow(10, inputDecimals);
-                    const upwardOutputReadable = parseFloat(upwardOutputRaw) / Math.pow(10, outputDecimals);
+                    const testInputReadable = parseFloat(testInputRaw) / Math.pow(10, inputDecimals);
+                    const testOutputReadable = parseFloat(testOutputRaw) / Math.pow(10, outputDecimals);
                     
-                    if (isFinite(upwardInputReadable) && upwardInputReadable > 0 && 
-                        isFinite(upwardOutputReadable) && upwardOutputReadable > 0) {
-                      const upwardPrice = upwardOutputReadable / upwardInputReadable;
+                    if (isFinite(testInputReadable) && testInputReadable > 0 && 
+                        isFinite(testOutputReadable) && testOutputReadable > 0) {
+                      const testPrice = testOutputReadable / testInputReadable;
                       
-                      if (isFinite(upwardPrice) && upwardPrice > 0 && upwardPrice < 1e10) {
-                        const upwardPriceImpact = Math.abs(((upwardPrice - baselinePrice) / baselinePrice) * 100);
+                      if (isFinite(testPrice) && testPrice > 0 && testPrice < 1e10) {
+                        const testPriceImpact = Math.abs(((testPrice - baselinePrice) / baselinePrice) * 100);
                         
-                        const existingPoint = depthPoints.find(p => Math.abs(p.tradeUsdValue - upwardAmount) < 1000);
-                        if (!existingPoint) {
-                          depthPoints.push({
-                            price: upwardPrice,
-                            amount: upwardInputReadable,
-                            outputAmount: upwardOutputReadable,
-                            priceImpact: upwardPriceImpact,
-                            slippage: upwardPriceImpact,
-                            tradeUsdValue: upwardAmount,
-                            rawInputAmount: upwardInputRaw,
-                            rawOutputAmount: upwardOutputRaw,
-                          });
-                          
-                          const upwardSuccessMsg = `   ✅ Found higher amount: ${formatUSD(upwardAmount)}, price impact: ${upwardPriceImpact.toFixed(2)}%`;
-                          console.log(upwardSuccessMsg);
-                          logs.push(upwardSuccessMsg);
-                          
-                          maxWorkingAmount = upwardAmount; // Update maximum
-                        }
+                        depthPoints.push({
+                          price: testPrice,
+                          amount: testInputReadable,
+                          outputAmount: testOutputReadable,
+                          priceImpact: testPriceImpact,
+                          slippage: testPriceImpact,
+                          tradeUsdValue: mid,
+                          rawInputAmount: testInputRaw,
+                          rawOutputAmount: testOutputRaw,
+                        });
+                        
+                        const upwardSuccessMsg = `   ✅ Found working amount: ${formatUSD(mid)}, price impact: ${testPriceImpact.toFixed(2)}%`;
+                        console.log(upwardSuccessMsg);
+                        logs.push(upwardSuccessMsg);
+                        
+                        bestAmount = mid;
+                        low = mid; // This amount works, try higher
+                      } else {
+                        high = mid; // Invalid price, try lower
                       }
+                    } else {
+                      high = mid; // Invalid amounts, try lower
                     }
+                  } else {
+                    high = mid; // Quote failed, try lower
                   }
-                } catch (upwardError) {
-                  // If upward amount fails, we've found the maximum - stop searching
-                  const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
-                  console.log(maxReachedMsg);
-                  logs.push(maxReachedMsg);
-                  break;
+                } catch (testError) {
+                  // This amount doesn't work, try lower
+                  high = mid;
+                  const testFailMsg = `   ❌ ${formatUSD(mid)} failed, trying lower amounts...`;
+                  console.log(testFailMsg);
+                  logs.push(testFailMsg);
                 }
+              }
+              
+              if (bestAmount > maxWorkingAmount) {
+                const finalMaxMsg = `   🎯 Final maximum liquidity: ${formatUSD(bestAmount)}`;
+                console.log(finalMaxMsg);
+                logs.push(finalMaxMsg);
+              } else {
+                const maxReachedMsg = `   🎯 Maximum liquidity reached at ${formatUSD(maxWorkingAmount)}`;
+                console.log(maxReachedMsg);
+                logs.push(maxReachedMsg);
               }
             }
           }
