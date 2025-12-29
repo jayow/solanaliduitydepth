@@ -65,16 +65,18 @@ async function getTokenList() {
   }
 
   // Try multiple Jupiter token endpoints to get all available tokens
-  // Order: Most reliable first
+  // Order: Most comprehensive first, then fallbacks
   // NOTE: Jupiter's token list endpoints only include tokens that meet liquidity requirements
   // (at least $500 liquidity, <30% price impact). Tokens like JUP, USX, eUSX may be routable
   // but not in the official list, so we manually add them via importantTokens.
   // API plan (free vs paid) does NOT affect token list availability - only rate limits.
   const tokenEndpoints = [
+    'https://tokens.jup.ag/tokens_with_markets',  // All tradable tokens with markets (most comprehensive)
     'https://token.jup.ag/all',                    // Jupiter's comprehensive token list (primary) - includes all routable tokens
+    'https://api.jup.ag/tokens/v1/all',           // Jupiter API v1 endpoint (official API)
     'https://token.jup.ag/strict',                // Jupiter's strict token list (verified tokens only - meets liquidity requirements)
     'https://tokens.jup.ag/all',                  // Alternative Jupiter endpoint
-    'https://api.jup.ag/tokens/v1/all',           // Jupiter API v1 endpoint
+    'https://tokens.jup.ag/tokens?tags=verified', // Verified tokens only
     JUPITER_TOKEN_URL,                            // Lite API endpoint
     'https://raw.githubusercontent.com/solana-labs/token-list/main/src/tokens/solana.tokenlist.json', // Solana official token list (fallback)
     'https://cdn.jsdelivr.net/gh/solana-labs/token-list@main/src/tokens/solana.tokenlist.json', // CDN version (fallback)
@@ -166,9 +168,10 @@ async function getTokenList() {
   console.log(`📊 Combined ${tokens.length} unique tokens from all sources`);
     
   // Normalize token structure - handle various token list formats
+  // Create a standardized structure that works with all Jupiter endpoints
   tokens = tokens.map(token => {
-    // Handle different address field names
-    const address = token.address || token.mintAddress || token.mint;
+    // Handle different address field names (Jupiter uses various formats)
+    const address = token.address || token.mintAddress || token.mint || token.id;
     
     // Handle different symbol formats
     const symbol = token.symbol || '';
@@ -187,13 +190,23 @@ async function getTokenList() {
       }
     }
     
+    // Standardized token structure
+    // Keep all original fields for reference, but ensure standard fields exist
     return {
+      address,           // Standardized: always 'address'
+      symbol,            // Standardized: always 'symbol'
+      name,              // Standardized: always 'name'
+      decimals,          // Standardized: always 'decimals'
+      logoURI: token.logoURI || token.logoUri || token.image || token.icon || null,
+      tags: token.tags || [],  // Jupiter tags (verified, LSTs, etc.)
+      verified: token.verified || (token.tags && token.tags.includes('verified')) || false,
+      // Keep original fields for backward compatibility
+      ...token,
+      // Override with standardized values
       address,
       symbol,
       name,
-      decimals,
-      logoURI: token.logoURI || token.logoUri || token.image || null,
-      ...token // Keep all original fields
+      decimals
     };
   }).filter(token => {
     // Filter out invalid tokens - be less strict to include more tokens
