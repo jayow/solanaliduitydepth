@@ -135,10 +135,13 @@ async function getTokenList() {
         // Add tokens to map (deduplicate by address)
         let addedCount = 0;
         for (const token of tokens) {
-          const address = token.address || token.mintAddress || token.mint;
-          if (address && !tokenMap.has(address)) {
-            tokenMap.set(address, token);
-            addedCount++;
+          // Handle different address field names across Jupiter endpoints
+          const address = token.address || token.mintAddress || token.mint || token.id;
+          if (address && typeof address === 'string' && address.length > 0 && address.length <= 44) {
+            if (!tokenMap.has(address)) {
+              tokenMap.set(address, token);
+              addedCount++;
+            }
           }
         }
         console.log(`   Added ${addedCount} new tokens (${tokenMap.size} total unique tokens)`);
