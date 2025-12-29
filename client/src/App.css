@@ -262,6 +262,27 @@
   opacity: 0.6;
 }
 
+.cancel-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background-color: #EF4444;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.15s ease-out;
+}
+
+.cancel-btn:hover {
+  background-color: #DC2626;
+}
+
+.cancel-btn:active {
+  background-color: #B91C1C;
+}
+
 .loading {
   display: flex;
   flex-direction: column;

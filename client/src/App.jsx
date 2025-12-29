@@ -215,11 +215,12 @@ function App() {
       setStatusMessage(`Error: ${errorMsg}`);
     } finally {
       setAbortController(null); // Clear abort controller
+      setLoading(false);
       // Clear timer
       if (timerInterval) {
         clearInterval(timerInterval);
+        setTimerInterval(null);
       }
-      setLoading(false);
     }
   };
 
