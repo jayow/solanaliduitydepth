@@ -217,10 +217,12 @@ function App() {
       setAbortController(null); // Clear abort controller
       setLoading(false);
       // Clear timer
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        setTimerInterval(null);
-      }
+      setTimerInterval(prev => {
+        if (prev) {
+          clearInterval(prev);
+        }
+        return null;
+      });
     }
   };
 
