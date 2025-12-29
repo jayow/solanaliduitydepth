@@ -43,6 +43,7 @@ if (!JUPITER_API_KEY) {
   console.warn('   Set JUPITER_API_KEY in your .env file or environment variables.');
 }
 const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
+const JUPITER_ULTRA_API_URL = 'https://ultra-api.jup.ag/order';
 const JUPITER_TOKEN_URL = 'https://api.jup.ag/tokens/v1/all';
 
 // Rate limit handling (reduced delays for paid API)
@@ -379,20 +380,19 @@ async function waitForRateLimit() {
   lastQuoteTime = Date.now();
 }
 
-// Get quote from Jupiter with retry logic
+// Get quote from Jupiter Ultra API (matches frontend) with retry logic
 async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries = 3) {
   await waitForRateLimit();
   
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await axiosInstance.get(JUPITER_QUOTE_URL, {
+      // Use Ultra API to match Jupiter frontend calculation
+      const response = await axiosInstance.get(JUPITER_ULTRA_API_URL, {
         params: {
           inputMint,
           outputMint,
           amount: amount.toString(),
-          slippageBps: slippageBps.toString(),
-          onlyDirectRoutes: 'false', // Allow multi-hop routes for better liquidity
-          asLegacyTransaction: 'false',
+          swapMode: 'ExactIn', // ExactIn = selling input token for output token
         },
         headers: {
           'Accept': 'application/json',
@@ -404,7 +404,14 @@ async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries
         throw new Error('Invalid quote response');
       }
       
-      return response.data;
+      // Ultra API returns priceImpact as percentage (e.g., -26.52) and priceImpactPct as decimal (e.g., -0.2652)
+      // Convert to match standard API format for compatibility
+      const ultraQuote = response.data;
+      return {
+        ...ultraQuote,
+        // Ensure priceImpactPct is in decimal format (Ultra API already provides this)
+        priceImpactPct: ultraQuote.priceImpactPct !== undefined ? ultraQuote.priceImpactPct : (ultraQuote.priceImpact !== undefined ? ultraQuote.priceImpact / 100 : undefined),
+      };
     } catch (error) {
       const status = error.response?.status;
       const errorMsg = error.response?.data?.error || error.message;
