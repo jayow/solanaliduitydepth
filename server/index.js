@@ -814,15 +814,19 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           console.log(`✅ Using first successful quote as baseline price: ${baselinePrice.toFixed(6)}`);
         }
         
-        // Calculate price impact to match Jupiter frontend calculation
-        // NOTE: Jupiter's API priceImpactPct doesn't match their frontend display
-        // Jupiter frontend calculates: (expected_output - actual_output) / expected_output * 100
-        // Where expected_output is based on spot price (baseline price)
+        // Use Jupiter's priceImpactPct directly - it's the most accurate
+        // Jupiter's API calculates this using their routing algorithm and it matches their frontend
+        // Our manual calculation might differ due to baseline price estimation differences
         let priceImpact = 0;
         
-        if (baselinePrice && baselinePrice > 0) {
+        if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
+          // Jupiter returns priceImpactPct as a decimal (e.g., 0.8965 = 89.65%)
+          // Convert to percentage
+          priceImpact = Math.abs(parseFloat(quote.priceImpactPct)) * 100;
+          console.log(`📊 Using Jupiter's priceImpactPct: ${priceImpact.toFixed(2)}%`);
+        } else if (baselinePrice && baselinePrice > 0) {
+          // Fallback: Calculate price impact ourselves if Jupiter's priceImpactPct not available
           // Calculate expected output based on baseline (spot) price
-          // baselinePrice = output_per_input (e.g., USDC per token or tokens per USDC)
           let expectedOutput;
           
           if (isBuy) {
@@ -843,10 +847,9 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
           const actualOutput = outputAmountReadable;
           
           // Price impact = (expected - actual) / expected * 100
-          // This matches Jupiter frontend calculation
           if (expectedOutput > 0 && actualOutput > 0) {
             priceImpact = Math.abs((expectedOutput - actualOutput) / expectedOutput) * 100;
-            console.log(`📊 Price impact: ${priceImpact.toFixed(2)}% (expected: ${formatAmount(expectedOutput)}, actual: ${formatAmount(actualOutput)}, baseline: ${baselinePrice.toFixed(6)})`);
+            console.log(`📊 Calculated price impact (fallback): ${priceImpact.toFixed(2)}% (expected: ${formatAmount(expectedOutput)}, actual: ${formatAmount(actualOutput)})`);
           } else {
             // Fallback to price-based calculation if amounts are invalid
             const executionPrice = outputAmountReadable / inputAmountReadable;
@@ -854,14 +857,8 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
             console.log(`📊 Price impact (fallback): ${priceImpact.toFixed(2)}%`);
           }
         } else {
-          // No baseline price available - try using Jupiter's priceImpactPct as fallback
-          if (quote.priceImpactPct !== undefined && quote.priceImpactPct !== null) {
-            priceImpact = Math.abs(parseFloat(quote.priceImpactPct)) * 100;
-            console.log(`📊 Using Jupiter's priceImpactPct (no baseline): ${priceImpact.toFixed(2)}%`);
-          } else {
-            console.warn(`⚠️ Cannot calculate price impact: no baseline price and no priceImpactPct`);
-            priceImpact = 0;
-          }
+          console.warn(`⚠️ Cannot calculate price impact: no baseline price and no priceImpactPct`);
+          priceImpact = 0;
         }
         
         // Slippage is the same as price impact in this context (no market movement during execution)
