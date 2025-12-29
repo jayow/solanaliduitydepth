@@ -79,28 +79,11 @@ function App() {
   // User must manually click "Calculate" button to run liquidity depth calculation
 
   // Removed fetchTokens - tokens are now searched on-demand as user types
-        setError('No tokens found. Please check your connection.');
-        setStatusMessage('No tokens received from API');
-      } else {
-        setStatusMessage(`Loaded ${tokenList.length} tokens${tokenList.length <= 10 ? ' (using fallback list)' : ''}`);
-      }
-    } catch (err) {
-      console.error('Error fetching tokens:', err);
-      let errorMsg = 'Unknown error';
-      
-      if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error') || err.message?.includes('Failed to fetch')) {
-        errorMsg = 'Cannot connect to backend server. Make sure the server is running on port 3001.';
-      } else if (err.response) {
-        errorMsg = err.response.data?.error || err.response.statusText || `HTTP ${err.response.status}`;
-      } else {
-        errorMsg = err.message || 'Unknown error';
-      }
-      
-      setError(`Failed to load tokens: ${errorMsg}`);
-      setStatusMessage(`Failed to load tokens: ${errorMsg}`);
-    } finally {
-      setLoadingTokens(false);
-    }
+  
+  const swapTokens = () => {
+    const temp = inputToken;
+    setInputToken(outputToken);
+    setOutputToken(temp);
   };
 
   const fetchLiquidityDepth = async () => {
