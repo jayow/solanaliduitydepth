@@ -1,0 +1,725 @@
+{
+  "snapshots": [
+    {
+      "timestamp": "2025-12-30T08:49:44.310Z",
+      "tokens": [
+        {
+          "symbol": "USDT",
+          "name": "Tether USD",
+          "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+          "impact5Percent": {
+            "tradeSize": 99975586,
+            "priceImpact": 0.7575108943218958,
+            "quote": {
+              "inAmount": "99975586000000",
+              "outAmount": "24219672327453",
+              "otherAmountThreshold": "24219672327453",
+              "swapMode": "ExactIn",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.7575108943218958",
+              "routePlan": [
+                {
+                  "percent": 76,
+                  "bps": 7600,
+                  "usdValue": 75896990.6700229,
+                  "swapInfo": {
+                    "ammKey": "7XawhbbxtsRcQA8KTkHT9f9nc6d69UwqCDh6U5EEbEmX",
+                    "label": "Raydium",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "So11111111111111111111111111111111111111112",
+                    "inAmount": "75981445360000",
+                    "outAmount": "2911941000291",
+                    "marketIncurredSlippageBpsF64": "6.028251062434684"
+                  }
+                },
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 75896990.6700229,
+                  "swapInfo": {
+                    "ammKey": "FLckHLGMJy5gEoXWwcE68Nprde1D4araK4TGLw4pQq2n",
+                    "label": "TesseraV",
+                    "inputMint": "So11111111111111111111111111111111111111112",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "2911941000291",
+                    "outAmount": "362977313302",
+                    "marketIncurredSlippageBpsF64": "0.8643054430633748"
+                  }
+                },
+                {
+                  "percent": 10,
+                  "bps": 1000,
+                  "usdValue": 9986446.140792487,
+                  "swapInfo": {
+                    "ammKey": "4sC7TFsmHodm4sfFFBcKXKbL1K2V5pav52zAiokufnQy",
+                    "label": "PancakeSwap",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "9997558600000",
+                    "outAmount": "9937496635875",
+                    "marketIncurredSlippageBpsF64": "0.00030285389090854915"
+                  }
+                },
+                {
+                  "percent": 14,
+                  "bps": 1400,
+                  "usdValue": 13981024.597109482,
+                  "swapInfo": {
+                    "ammKey": "46Z4iBRb8Kwj2qBoDyLAWt99vKXsUS1vE7vFU2vy5x2V",
+                    "label": "PancakeSwap",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "13996582040000",
+                    "outAmount": "13919198378276",
+                    "marketIncurredSlippageBpsF64": "0.00013233898209129608"
+                  }
+                }
+              ],
+              "feeMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "transaction": null,
+              "gasless": false,
+              "taker": null,
+              "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "swapType": "aggregator",
+              "router": "iris",
+              "requestId": "019b6e71-1cdf-731b-a279-b02d067f92d4",
+              "inUsdValue": 99864461.40792488,
+              "outUsdValue": 24216043.935833253,
+              "swapUsdValue": 99864461.40792488,
+              "priceImpact": -75.75108943218957,
+              "mode": "ultra",
+              "totalTime": 539
+            }
+          },
+          "impact15Percent": {
+            "tradeSize": 93750007,
+            "priceImpact": 0.8439165958150212,
+            "quote": {
+              "inAmount": "93750007000000",
+              "outAmount": "14618680929803",
+              "otherAmountThreshold": "14618680929803",
+              "swapMode": "ExactIn",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8439165958150212",
+              "routePlan": [
+                {
+                  "percent": 15,
+                  "bps": 1500,
+                  "usdValue": 14046808.136853226,
+                  "swapInfo": {
+                    "ammKey": "46Z4iBRb8Kwj2qBoDyLAWt99vKXsUS1vE7vFU2vy5x2V",
+                    "label": "PancakeSwap",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "14062501050000",
+                    "outAmount": "13984457655103"
+                  }
+                },
+                {
+                  "percent": 25,
+                  "bps": 2500,
+                  "usdValue": 23411346.894755375,
+                  "swapInfo": {
+                    "ammKey": "32D4zRxNc1EssbJieVHfPhZM3rH6CzfUPrWUuWxD9prG",
+                    "label": "Meteora",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "23437501750000",
+                    "outAmount": "271837867075"
+                  }
+                },
+                {
+                  "percent": 60,
+                  "bps": 6000,
+                  "usdValue": 56187232.5474129,
+                  "swapInfo": {
+                    "ammKey": "7XawhbbxtsRcQA8KTkHT9f9nc6d69UwqCDh6U5EEbEmX",
+                    "label": "Raydium",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "So11111111111111111111111111111111111111112",
+                    "inAmount": "56250004200000",
+                    "outAmount": "2907056568186"
+                  }
+                },
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 56187232.5474129,
+                  "swapInfo": {
+                    "ammKey": "FLckHLGMJy5gEoXWwcE68Nprde1D4araK4TGLw4pQq2n",
+                    "label": "TesseraV",
+                    "inputMint": "So11111111111111111111111111111111111111112",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "2907056568186",
+                    "outAmount": "362385407625"
+                  }
+                }
+              ],
+              "feeMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "transaction": null,
+              "gasless": false,
+              "taker": null,
+              "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "swapType": "aggregator",
+              "router": "iris",
+              "requestId": "019b6e71-3897-736c-b67d-90c38af7b1e3",
+              "inUsdValue": 93645387.5790215,
+              "outUsdValue": 14616490.879555404,
+              "swapUsdValue": 93645387.5790215,
+              "priceImpact": -84.39165958150213,
+              "mode": "ultra",
+              "totalTime": 366
+            }
+          }
+        },
+        {
+          "symbol": "USX",
+          "name": "USX",
+          "address": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+          "impact5Percent": {
+            "tradeSize": 99804688,
+            "priceImpact": 0.8999561644675406,
+            "quote": {
+              "swapMode": "ExactIn",
+              "inputMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "inAmount": "99804688000000",
+              "outAmount": "9977294745750",
+              "otherAmountThreshold": "9977294745750",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8999561644675406",
+              "priceImpact": -89.99561644675406,
+              "routePlan": [
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 99714290.00716534,
+                  "swapInfo": {
+                    "inputMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "99804688000000",
+                    "outAmount": "9977294745750",
+                    "ammKey": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+                    "label": "OKX DEX Router"
+                  }
+                }
+              ],
+              "feeMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "swapType": "okx",
+              "router": "okx",
+              "transaction": null,
+              "gasless": false,
+              "requestId": "019b6e71-8b0d-77c4-b713-ebd6cb02908a",
+              "taker": null,
+              "inUsdValue": 99714290.00716534,
+              "outUsdValue": 9975800.029712817,
+              "swapUsdValue": 99714290.00716534,
+              "mode": "ultra",
+              "totalTime": 278
+            }
+          },
+          "impact15Percent": {
+            "tradeSize": 99996949,
+            "priceImpact": 0.8999539736246792,
+            "quote": {
+              "swapMode": "ExactIn",
+              "inputMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "inAmount": "99996949000000",
+              "outAmount": "9996482477667",
+              "otherAmountThreshold": "9996482477667",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8999539736246792",
+              "priceImpact": -89.99539736246793,
+              "routePlan": [
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 99901544.13863374,
+                  "swapInfo": {
+                    "inputMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "99996949000000",
+                    "outAmount": "9996482477667",
+                    "ammKey": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+                    "label": "OKX DEX Router"
+                  }
+                }
+              ],
+              "feeMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "swapType": "okx",
+              "router": "okx",
+              "transaction": null,
+              "gasless": false,
+              "requestId": "019b6e71-db4c-7571-8362-278997981e4b",
+              "taker": null,
+              "inUsdValue": 99901544.13863374,
+              "outUsdValue": 9994752.519829025,
+              "swapUsdValue": 99901544.13863374,
+              "mode": "ultra",
+              "totalTime": 399
+            }
+          }
+        },
+        {
+          "symbol": "HYUSD",
+          "name": "HYUSD",
+          "address": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+          "impact5Percent": {
+            "tradeSize": 3076266,
+            "priceImpact": 0.8771256903726342,
+            "quote": {
+              "swapMode": "ExactIn",
+              "inputMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "inAmount": "3076266000000",
+              "outAmount": "378059486691",
+              "otherAmountThreshold": "378059486691",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8771256903726342",
+              "priceImpact": -87.71256903726342,
+              "routePlan": [
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 3076266,
+                  "swapInfo": {
+                    "inputMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "3076266000000",
+                    "outAmount": "378059486691",
+                    "ammKey": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+                    "label": "OKX DEX Router"
+                  }
+                }
+              ],
+              "feeMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "swapType": "okx",
+              "router": "okx",
+              "transaction": null,
+              "gasless": false,
+              "requestId": "019b6e72-0edf-7187-b89e-9309daaa3920",
+              "taker": null,
+              "inUsdValue": 3076266,
+              "outUsdValue": 377994.06098013796,
+              "swapUsdValue": 3076266,
+              "mode": "ultra",
+              "totalTime": 431
+            }
+          },
+          "impact15Percent": {
+            "tradeSize": 2905368,
+            "priceImpact": 0.8715279153678427,
+            "quote": {
+              "swapMode": "ExactIn",
+              "inputMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "inAmount": "2905368000000",
+              "outAmount": "373323289664",
+              "otherAmountThreshold": "373323289664",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8715279153678427",
+              "priceImpact": -87.15279153678426,
+              "routePlan": [
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 2905368,
+                  "swapInfo": {
+                    "inputMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "2905368000000",
+                    "outAmount": "373323289664",
+                    "ammKey": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+                    "label": "OKX DEX Router"
+                  }
+                }
+              ],
+              "feeMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "swapType": "okx",
+              "router": "okx",
+              "transaction": null,
+              "gasless": false,
+              "requestId": "019b6e72-5294-7059-a312-2da597ee2b47",
+              "taker": null,
+              "inUsdValue": 2905368,
+              "outUsdValue": 373258.6835835616,
+              "swapUsdValue": 2905368,
+              "mode": "ultra",
+              "totalTime": 363
+            }
+          }
+        },
+        {
+          "symbol": "USD*",
+          "name": "USD*",
+          "address": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+          "impact5Percent": {
+            "tradeSize": 3150,
+            "priceImpact": 938.8085751706501,
+            "quote": {
+              "inAmount": "3150000000",
+              "outAmount": "3060835167825",
+              "otherAmountThreshold": "3060835167825",
+              "swapMode": "ExactIn",
+              "slippageBps": 0,
+              "priceImpactPct": "938.8085751706501",
+              "routePlan": [
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 3256.3444079450064,
+                  "swapInfo": {
+                    "ammKey": "HxKS9FbLgf1XZmSz8QbGeej2u8oVwpGZz298MdajLJvD",
+                    "label": "Perena Star",
+                    "inputMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "3150000000",
+                    "outAmount": "3060835167825"
+                  }
+                }
+              ],
+              "feeMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "transaction": null,
+              "gasless": false,
+              "taker": null,
+              "inputMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "swapType": "aggregator",
+              "router": "iris",
+              "requestId": "019b6e72-7da0-740c-b649-2d3b43fbc905",
+              "inUsdValue": 3256.3444079450064,
+              "outUsdValue": 3060340.398295711,
+              "swapUsdValue": 3256.3444079450064,
+              "priceImpact": 93880.85751706501,
+              "mode": "ultra",
+              "totalTime": 234
+            }
+          },
+          "impact15Percent": {
+            "tradeSize": 3150,
+            "priceImpact": 938.8085751706501,
+            "quote": {
+              "inAmount": "3150000000",
+              "outAmount": "3060835167825",
+              "otherAmountThreshold": "3060835167825",
+              "swapMode": "ExactIn",
+              "slippageBps": 0,
+              "priceImpactPct": "938.8085751706501",
+              "routePlan": [
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 3256.3444079450064,
+                  "swapInfo": {
+                    "ammKey": "HxKS9FbLgf1XZmSz8QbGeej2u8oVwpGZz298MdajLJvD",
+                    "label": "Perena Star",
+                    "inputMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "3150000000",
+                    "outAmount": "3060835167825"
+                  }
+                }
+              ],
+              "feeMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "transaction": null,
+              "gasless": false,
+              "taker": null,
+              "inputMint": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "swapType": "aggregator",
+              "router": "iris",
+              "requestId": "019b6e72-9f53-758d-93a4-48a97bd77a94",
+              "inUsdValue": 3256.3444079450064,
+              "outUsdValue": 3060340.398295711,
+              "swapUsdValue": 3256.3444079450064,
+              "priceImpact": 93880.85751706501,
+              "mode": "ultra",
+              "totalTime": 284
+            }
+          }
+        },
+        {
+          "symbol": "PYUSD",
+          "name": "PayPal USD",
+          "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+          "impact5Percent": {
+            "tradeSize": 99987793,
+            "priceImpact": 0.8453814286442966,
+            "quote": {
+              "inAmount": "99987793000000",
+              "outAmount": "15460892590598",
+              "otherAmountThreshold": "15460892590598",
+              "swapMode": "ExactIn",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8453814286442966",
+              "routePlan": [
+                {
+                  "percent": 15,
+                  "bps": 1500,
+                  "usdValue": 14996639.738897337,
+                  "swapInfo": {
+                    "ammKey": "9tXiuRRw7kbejLhZXtxDxYs2REe43uH2e7k1kocgdM9B",
+                    "label": "Whirlpool",
+                    "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "14998168950000",
+                    "outAmount": "14989757458480"
+                  }
+                },
+                {
+                  "percent": 32,
+                  "bps": 3200,
+                  "usdValue": 31992831.442980982,
+                  "swapInfo": {
+                    "ammKey": "BsWw8Moc5nupSU9w6kFTUB7MyVGU9PjnUxBY1hZwLffw",
+                    "label": "Stabble Stable Swap",
+                    "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "31996093760000",
+                    "outAmount": "154628814959"
+                  }
+                },
+                {
+                  "percent": 53,
+                  "bps": 5300,
+                  "usdValue": 52988127.07743725,
+                  "swapInfo": {
+                    "ammKey": "FCh71s5KVinqPT45QXpkYqnsFdEnmZoGTNsuxunncoLu",
+                    "label": "Stabble Stable Swap",
+                    "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+                    "outputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "inAmount": "52993530290000",
+                    "outAmount": "316871331926"
+                  }
+                },
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 52988127.07743725,
+                  "swapInfo": {
+                    "ammKey": "46Z4iBRb8Kwj2qBoDyLAWt99vKXsUS1vE7vFU2vy5x2V",
+                    "label": "PancakeSwap",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "316871331926",
+                    "outAmount": "316506317159"
+                  }
+                }
+              ],
+              "feeMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "transaction": null,
+              "gasless": false,
+              "taker": null,
+              "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "swapType": "aggregator",
+              "router": "iris",
+              "requestId": "019b6e72-c37e-76eb-84f9-ef799113eb2d",
+              "inUsdValue": 99977598.25931557,
+              "outUsdValue": 15458393.410429839,
+              "swapUsdValue": 99977598.25931557,
+              "priceImpact": -84.53814286442966,
+              "mode": "ultra",
+              "totalTime": 283
+            }
+          },
+          "impact15Percent": {
+            "tradeSize": 99996949,
+            "priceImpact": 0.8453889403871748,
+            "quote": {
+              "inAmount": "99996949000000",
+              "outAmount": "15462264364695",
+              "otherAmountThreshold": "15462264364695",
+              "swapMode": "ExactIn",
+              "slippageBps": 0,
+              "priceImpactPct": "-0.8453889403871748",
+              "routePlan": [
+                {
+                  "percent": 32,
+                  "bps": 3200,
+                  "usdValue": 31997224.522489246,
+                  "swapInfo": {
+                    "ammKey": "BsWw8Moc5nupSU9w6kFTUB7MyVGU9PjnUxBY1hZwLffw",
+                    "label": "Stabble Stable Swap",
+                    "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "31999023680000",
+                    "outAmount": "154628814959"
+                  }
+                },
+                {
+                  "percent": 53,
+                  "bps": 5300,
+                  "usdValue": 52995403.115372814,
+                  "swapInfo": {
+                    "ammKey": "FCh71s5KVinqPT45QXpkYqnsFdEnmZoGTNsuxunncoLu",
+                    "label": "Stabble Stable Swap",
+                    "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+                    "outputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "inAmount": "52998382970000",
+                    "outAmount": "316871331926"
+                  }
+                },
+                {
+                  "percent": 100,
+                  "bps": 10000,
+                  "usdValue": 52995403.115372814,
+                  "swapInfo": {
+                    "ammKey": "46Z4iBRb8Kwj2qBoDyLAWt99vKXsUS1vE7vFU2vy5x2V",
+                    "label": "PancakeSwap",
+                    "inputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "316871331926",
+                    "outAmount": "316506317159"
+                  }
+                },
+                {
+                  "percent": 15,
+                  "bps": 1500,
+                  "usdValue": 14998698.994916834,
+                  "swapInfo": {
+                    "ammKey": "9tXiuRRw7kbejLhZXtxDxYs2REe43uH2e7k1kocgdM9B",
+                    "label": "Whirlpool",
+                    "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inAmount": "14999542350000",
+                    "outAmount": "14991129232577"
+                  }
+                }
+              ],
+              "feeMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+              "feeBps": 0,
+              "platformFee": {
+                "feeBps": 0,
+                "feeMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"
+              },
+              "signatureFeeLamports": 0,
+              "signatureFeePayer": null,
+              "prioritizationFeeLamports": 0,
+              "prioritizationFeePayer": null,
+              "rentFeeLamports": 0,
+              "rentFeePayer": null,
+              "transaction": null,
+              "gasless": false,
+              "taker": null,
+              "inputMint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+              "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "swapType": "aggregator",
+              "router": "iris",
+              "requestId": "019b6e72-ebd9-7143-9b00-4ad56ae74769",
+              "inUsdValue": 99991326.6327789,
+              "outUsdValue": 15459764.962786043,
+              "swapUsdValue": 99991326.6327789,
+              "priceImpact": -84.53889403871749,
+              "mode": "ultra",
+              "totalTime": 264
+            }
+          }
+        }
+      ],
+      "calculatedAt": "2025-12-30T08:49:44.312Z"
+    }
+  ]
+}

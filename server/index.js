@@ -6,6 +6,7 @@ import cors from 'cors';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import https from 'https';
+import { saveSnapshot, getSnapshots, getLatestSnapshots, getTokenHistory, getStatistics } from './liquidityStorage.js';
 
 // Only load .env file if not in Vercel environment
 if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
@@ -48,6 +49,43 @@ if (!JUPITER_API_KEY) {
 const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
 const JUPITER_ULTRA_API_URL = 'https://ultra-api.jup.ag/order';
 const JUPITER_TOKEN_URL = 'https://api.jup.ag/tokens/v1/all';
+
+// Monitored tokens configuration for liquidity dashboard
+// These tokens will be monitored hourly for liquidity at 5% and 15% price impact
+const MONITORED_TOKENS = [
+  {
+    symbol: 'USDT',
+    name: 'Tether USD',
+    address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+    decimals: 6
+  },
+  {
+    symbol: 'USX',
+    name: 'USX',
+    address: '6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG',
+    decimals: 6
+  },
+  {
+    symbol: 'HYUSD',
+    name: 'HYUSD',
+    address: '5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E',
+    decimals: 6
+  },
+  {
+    symbol: 'USD*',
+    name: 'USD*',
+    address: 'star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM',
+    decimals: 6
+  },
+  {
+    symbol: 'PYUSD',
+    name: 'PayPal USD',
+    address: '2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo',
+    decimals: 6
+  }
+];
+
+const USDC_ADDRESS = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
 // Rate limit handling (reduced delays for paid API)
 let lastQuoteTime = 0;
@@ -1929,6 +1967,211 @@ app.get('/api/test-quote', async (req, res) => {
     });
   }
 });
+
+// Calculate and STORE hourly liquidity snapshot
+// This endpoint should be called by a cron job every hour
+app.post('/api/liquidity-calculate', async (req, res) => {
+  try {
+    console.log('📊 Starting hourly liquidity calculation for all configured tokens...');
+    const startTime = Date.now();
+    const results = [];
+
+    // Process each monitored token
+    for (const token of MONITORED_TOKENS) {
+      console.log(`\n🔍 Calculating ${token.symbol} (${token.address.slice(0, 8)}...)`);
+      
+      try {
+        // Find trade sizes at 5% and 15% price impact
+        const impact5 = await findTradeSizeAtPriceImpact(token.address, USDC_ADDRESS, 5.0, token.decimals);
+        const impact15 = await findTradeSizeAtPriceImpact(token.address, USDC_ADDRESS, 15.0, token.decimals);
+        
+        results.push({
+          symbol: token.symbol,
+          name: token.name,
+          address: token.address,
+          impact5Percent: impact5,
+          impact15Percent: impact15
+        });
+        
+        console.log(`✅ ${token.symbol}: 5% impact at ${formatUSD(impact5.tradeSize || 0)}, 15% impact at ${formatUSD(impact15.tradeSize || 0)}`);
+      } catch (error) {
+        console.error(`❌ Error calculating ${token.symbol}:`, error.message);
+        results.push({
+          symbol: token.symbol,
+          name: token.name,
+          address: token.address,
+          error: error.message
+        });
+      }
+    }
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`\n✅ Liquidity calculation complete in ${duration}s`);
+
+    // Save snapshot to storage
+    const snapshot = saveSnapshot(results);
+    
+    res.json({
+      success: true,
+      message: 'Snapshot saved successfully',
+      snapshot: snapshot,
+      calculationTime: `${duration}s`
+    });
+  } catch (error) {
+    console.error('❌ Liquidity calculation failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// GET latest liquidity data from storage (fast, no calculation)
+app.get('/api/liquidity-snapshots/latest', async (req, res) => {
+  try {
+    const latestData = getLatestSnapshots();
+    const stats = getStatistics();
+    
+    res.json({
+      success: true,
+      tokens: latestData,
+      statistics: stats
+    });
+  } catch (error) {
+    console.error('❌ Error fetching snapshots:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// GET all snapshots (with optional limit)
+app.get('/api/liquidity-snapshots', async (req, res) => {
+  try {
+    const { snapshots } = getSnapshots();
+    const limit = parseInt(req.query.limit) || snapshots.length;
+    
+    res.json({
+      success: true,
+      snapshots: snapshots.slice(-limit), // Get last N snapshots
+      total: snapshots.length
+    });
+  } catch (error) {
+    console.error('❌ Error fetching snapshots:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// GET history for a specific token
+app.get('/api/liquidity-history/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const hours = parseInt(req.query.hours) || 24;
+    
+    const history = getTokenHistory(symbol, hours);
+    
+    res.json({
+      success: true,
+      symbol: symbol,
+      history: history,
+      hours: hours
+    });
+  } catch (error) {
+    console.error('❌ Error fetching token history:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper function to find trade size at a specific price impact
+// Uses binary search to find the exact trade size that results in target price impact
+async function findTradeSizeAtPriceImpact(inputMint, outputMint, targetPriceImpact, decimals) {
+  console.log(`   🎯 Finding trade size for ${targetPriceImpact}% price impact...`);
+  
+  // Binary search parameters
+  let low = 100; // Start at $100
+  let high = 100000000; // Max $100M
+  const tolerance = 0.5; // Within 0.5% of target
+  const maxIterations = 15;
+  let iterations = 0;
+  
+  let bestMatch = null;
+  
+  while (low <= high && iterations < maxIterations) {
+    iterations++;
+    const mid = Math.floor((low + high) / 2);
+    
+    try {
+      // Calculate raw amount for this USD value
+      // Assuming 1:1 for stablecoins
+      const rawAmount = Math.floor(mid * Math.pow(10, decimals));
+      
+      // Get quote with high slippage tolerance
+      const quote = await getQuote(inputMint, outputMint, rawAmount, 10000, 2);
+      
+      if (!quote || !quote.priceImpactPct) {
+        // No quote available, try smaller amount
+        high = mid - 1;
+        continue;
+      }
+      
+      const priceImpact = Math.abs(quote.priceImpactPct);
+      const diff = Math.abs(priceImpact - targetPriceImpact);
+      
+      console.log(`   🔄 Iteration ${iterations}: $${mid.toLocaleString()} → ${priceImpact.toFixed(2)}% impact`);
+      
+      // Check if this is the best match so far
+      if (!bestMatch || diff < Math.abs(bestMatch.priceImpact - targetPriceImpact)) {
+        bestMatch = {
+          tradeSize: mid,
+          priceImpact: priceImpact,
+          quote: quote
+        };
+      }
+      
+      // Check if we're within tolerance
+      if (diff <= tolerance) {
+        console.log(`   ✅ Found match: $${mid.toLocaleString()} at ${priceImpact.toFixed(2)}% impact`);
+        return bestMatch;
+      }
+      
+      // Adjust search range
+      if (priceImpact < targetPriceImpact) {
+        // Need larger trade size for more impact
+        low = mid + 1;
+      } else {
+        // Need smaller trade size for less impact
+        high = mid - 1;
+      }
+      
+      // Small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+    } catch (error) {
+      console.log(`   ⚠️ Error at $${mid.toLocaleString()}: ${error.message}`);
+      // If error, try smaller amount
+      high = mid - 1;
+    }
+  }
+  
+  if (bestMatch) {
+    console.log(`   ✅ Best match after ${iterations} iterations: $${bestMatch.tradeSize.toLocaleString()} at ${bestMatch.priceImpact.toFixed(2)}% impact`);
+    return bestMatch;
+  }
+  
+  console.log(`   ❌ No match found after ${iterations} iterations`);
+  return {
+    tradeSize: 0,
+    priceImpact: 0,
+    error: 'No route found'
+  };
+}
 
 // Export the app for Vercel serverless functions
 export default app;
