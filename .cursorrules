@@ -1,0 +1,90 @@
+# Cursor AI Rules for Solana Liquidity Depth Project
+
+## Git and Version Control
+
+### CRITICAL: Main Branch Protection
+⚠️ **READ THIS CAREFULLY - THESE ARE ABSOLUTE RULES:**
+
+- **NEVER commit to `main` branch without EXPLICIT user approval for THAT SPECIFIC commit**
+- **NEVER push to `main` branch without EXPLICIT user approval**
+- **NEVER merge to `main` branch without EXPLICIT user approval**
+- **NEVER force push to any branch without EXPLICIT user approval**
+
+### CRITICAL: Understanding User Instructions
+⚠️ **DO NOT CONFUSE "IMPLEMENT" WITH "COMMIT/PUSH":**
+
+When user says:
+- ❌ "add feature X" → Does NOT mean commit/push to main
+- ❌ "lets do KV" → Does NOT mean commit/push to main  
+- ❌ "create X" → Does NOT mean commit/push to main
+- ❌ "fix Y" → Does NOT mean commit/push to main
+
+✅ **ONLY these phrases mean commit/push to main:**
+- "commit to main"
+- "push to main"
+- "merge to main"
+- "deploy to production"
+- Explicit confirmation like "yes, push it" or "merge it"
+
+### Default Behavior for All Work
+1. **ALWAYS work on feature branches** (never on main)
+2. **ALWAYS commit to feature branch** after implementing
+3. **ALWAYS show what was done** before asking about main
+4. **ALWAYS ask explicitly**: "Should I merge this to main?"
+5. **WAIT for explicit YES** before touching main
+
+### Proper Git Workflow
+1. **Always work on feature branches** (e.g., `v6`, `feature-name`, `fix-something`)
+2. **Commit to feature branches freely** as work progresses
+3. **Before merging to main:**
+   - Show the user a summary of changes
+   - Show the commit message
+   - Explicitly ask: "Should I merge these changes to main and deploy?"
+   - Wait for user confirmation (yes/approve/merge/etc.)
+4. **Never assume** previous approval applies to new work
+
+### Deployment Rules
+- **Only deploy when explicitly asked** by the user
+- **Ask before deploying** if there are uncommitted changes
+- **Confirm branch** before deploying (main vs feature branch)
+
+## Communication
+- Be transparent about what changes will be made
+- Ask for approval on significant decisions
+- Never make assumptions about user intent
+- If uncertain, ask first
+
+## Example Good Workflow
+```
+User: "Add feature X"
+AI: [creates feature branch, implements feature]
+AI: "I've completed feature X on branch 'feature-x'. Here's what changed:
+     - File A: Added functionality Y
+     - File B: Updated Z
+     
+     Would you like me to:
+     1. Merge to main and deploy?
+     2. Just merge to main (no deploy)?
+     3. Keep on feature branch for review?"
+User: "Merge to main and deploy"
+AI: [merges and deploys]
+```
+
+## Example Bad Workflow (AVOID)
+```
+User: "Add feature X"
+AI: [implements, commits, pushes to main without asking]
+AI: [continues adding related features, pushing to main]
+❌ WRONG - No approval requested
+```
+
+## Emergency Revert Protocol
+If accidental commits are made to main:
+1. Immediately inform the user
+2. Offer to revert
+3. Execute revert if approved
+4. Learn from the mistake
+
+---
+**Remember: The user owns the repository. Always ask permission before modifying main branch.**
+
