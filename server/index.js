@@ -6,10 +6,30 @@ import cors from 'cors';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import https from 'https';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 // Only load .env file if not in Vercel environment
 if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
-  dotenv.config();
+  // Load .env from root directory (parent of server directory) or server directory
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const rootEnvPath = join(__dirname, '..', '.env');
+  const serverEnvPath = join(__dirname, '.env');
+  
+  // Try loading from server directory first (more reliable), then root as fallback
+  let result = dotenv.config({ path: serverEnvPath });
+  if (result.error) {
+    // Fallback: try loading from root directory
+    result = dotenv.config({ path: rootEnvPath });
+    if (result.error) {
+      console.warn(`⚠️  Could not load .env from ${serverEnvPath} or ${rootEnvPath}:`, result.error.message);
+    } else {
+      console.log(`✅ Loaded .env from ${rootEnvPath}`);
+    }
+  } else {
+    console.log(`✅ Loaded .env from ${serverEnvPath}`);
+  }
 }
 
 // Log SSL configuration on startup
@@ -40,10 +60,25 @@ app.use(express.json());
 // Using paid API with API key for higher rate limits
 // API key must be set via JUPITER_API_KEY environment variable
 const JUPITER_API_KEY = process.env.JUPITER_API_KEY;
+// Standard API key for fallback (works with Standard API endpoint)
+// If main API key doesn't work with Standard API, use STANDARD_API_KEY env var
+const STANDARD_API_KEY = process.env.STANDARD_API_KEY;
+
+// Wallet address for USD* swaps (required for accurate quotes)
+// This wallet should have USD* balance for accurate quotes
+const JUPITER_WALLET_ADDRESS = process.env.JUPITER_WALLET_ADDRESS;
+
+if (JUPITER_WALLET_ADDRESS) {
+  console.log(`✅ Using wallet address for USD* quotes: ${JUPITER_WALLET_ADDRESS.slice(0, 8)}...`);
+} else {
+  console.warn('⚠️ JUPITER_WALLET_ADDRESS not set - USD* quotes may be inaccurate without wallet balance');
+}
 
 if (!JUPITER_API_KEY) {
   console.warn('⚠️ WARNING: JUPITER_API_KEY environment variable not set. API requests may be rate limited.');
   console.warn('   Set JUPITER_API_KEY in your .env file or environment variables.');
+} else {
+  console.log(`✅ JUPITER_API_KEY loaded: ${JUPITER_API_KEY.slice(0, 8)}...`);
 }
 const JUPITER_QUOTE_URL = 'https://api.jup.ag/swap/v1/quote';
 const JUPITER_ULTRA_API_URL = 'https://ultra-api.jup.ag/order';
@@ -428,20 +463,57 @@ async function waitForRateLimit() {
   lastQuoteTime = Date.now();
 }
 
-// Get quote from Jupiter Ultra API (matches frontend) with retry logic
+// Check if price impact is erroneous (very high positive impact indicates API issue)
+function isErroneousPriceImpact(priceImpactPct) {
+  if (priceImpactPct === undefined || priceImpactPct === null) return false;
+  
+  const impactValue = parseFloat(priceImpactPct);
+  
+  // Ultra API can return priceImpactPct in different formats:
+  // - As decimal: -0.2652 (meaning -26.52%) - need to multiply by 100
+  // - As percentage: 939.38 (meaning 939.38%) - already a percentage
+  // If absolute value > 1, it's likely already in percentage format
+  // If absolute value <= 1, it's in decimal format
+  const impactPercent = Math.abs(impactValue) > 1 
+    ? Math.abs(impactValue)  // Already in percentage format
+    : Math.abs(impactValue) * 100;  // Convert from decimal to percentage
+  
+  // Price impact > 100% is clearly erroneous (especially for stablecoin swaps)
+  // This indicates the API is returning placeholder/warning data instead of actual quote
+  return impactPercent > 100;
+}
+
+// USD* mint address
+const USD_STAR_MINT = 'star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM';
+
+// Get quote from Jupiter API with retry logic
+// Tries Ultra API first, falls back to Standard API if price impact is erroneous
+// For USD* swaps, uses wallet address if available for accurate quotes
 async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries = 3) {
   await waitForRateLimit();
   
+  // Check if this is a USD* swap that needs wallet context
+  const isUSDStarSwap = inputMint === USD_STAR_MINT || outputMint === USD_STAR_MINT;
+  const userPublicKey = (isUSDStarSwap && JUPITER_WALLET_ADDRESS) ? JUPITER_WALLET_ADDRESS : null;
+  
+  // Try Ultra API first (matches frontend behavior)
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Use Ultra API to match Jupiter frontend calculation
+      const ultraParams = {
+        inputMint,
+        outputMint,
+        amount: amount.toString(),
+        swapMode: 'ExactIn', // ExactIn = selling input token for output token
+      };
+      
+      // Add wallet address for USD* swaps
+      if (userPublicKey) {
+        ultraParams.userPublicKey = userPublicKey;
+        console.log(`   🔑 Using wallet address for USD* quote: ${userPublicKey.slice(0, 8)}...`);
+      }
+      
       const response = await axiosInstance.get(JUPITER_ULTRA_API_URL, {
-        params: {
-          inputMint,
-          outputMint,
-          amount: amount.toString(),
-          swapMode: 'ExactIn', // ExactIn = selling input token for output token
-        },
+        params: ultraParams,
         headers: {
           'Accept': 'application/json',
           ...(JUPITER_API_KEY && { 'x-api-key': JUPITER_API_KEY }),
@@ -455,10 +527,116 @@ async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries
       // Ultra API returns priceImpact as percentage (e.g., -26.52) and priceImpactPct as decimal (e.g., -0.2652)
       // Convert to match standard API format for compatibility
       const ultraQuote = response.data;
+      const priceImpactPct = ultraQuote.priceImpactPct !== undefined 
+        ? ultraQuote.priceImpactPct 
+        : (ultraQuote.priceImpact !== undefined ? ultraQuote.priceImpact / 100 : undefined);
+      
+      // Check if price impact is erroneous
+      if (isErroneousPriceImpact(priceImpactPct)) {
+        const impactPercent = Math.abs(parseFloat(priceImpactPct) * 100);
+        console.log(`   ⚠️  Ultra API returned erroneous price impact: ${impactPercent.toFixed(2)}% - trying Standard API...`);
+        
+        // Fallback to Standard API
+        let fallbackSucceeded = false;
+        try {
+          const standardHeaders = {
+            'Accept': 'application/json',
+          };
+          
+          // Use Standard API key for fallback (works with Standard API endpoint)
+          // The main API key may only work with Ultra API, so use Standard API key for Standard API calls
+          if (STANDARD_API_KEY) {
+            standardHeaders['x-api-key'] = STANDARD_API_KEY;
+            console.log(`   🔑 Using Standard API key for fallback: ${STANDARD_API_KEY.slice(0, 8)}...`);
+          } else {
+            console.warn(`   ⚠️  No Standard API key available for fallback`);
+          }
+          
+          const standardParams = {
+            inputMint,
+            outputMint,
+            amount: amount.toString(),
+            slippageBps: slippageBps.toString(),
+          };
+          
+          // Add wallet address for USD* swaps in Standard API too
+          if (userPublicKey) {
+            standardParams.userPublicKey = userPublicKey;
+            console.log(`   🔑 Using wallet address for Standard API fallback: ${userPublicKey.slice(0, 8)}...`);
+          }
+          
+          const standardResponse = await axiosInstance.get(JUPITER_QUOTE_URL, {
+            params: standardParams,
+            headers: standardHeaders
+          });
+          
+          if (standardResponse.data && standardResponse.data.outAmount && standardResponse.data.inAmount) {
+            const standardQuote = standardResponse.data;
+            const standardPriceImpactPct = standardQuote.priceImpactPct !== undefined 
+              ? standardQuote.priceImpactPct 
+              : (standardQuote.priceImpact !== undefined ? standardQuote.priceImpact / 100 : undefined);
+            
+            const standardImpactPercent = standardPriceImpactPct !== undefined 
+              ? Math.abs(parseFloat(standardPriceImpactPct) * 100) 
+              : 0;
+            
+            // Validate quote amounts are reasonable (for stablecoin swaps, should be ~1:1)
+            // Check if this is a stablecoin-to-stablecoin swap
+            const isStablecoinSwap = (
+              (inputMint === 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' || // USDC
+               inputMint === 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' || // USDT
+               inputMint === 'star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM') && // USD*
+              (outputMint === 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' || // USDC
+               outputMint === 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB' || // USDT
+               outputMint === 'star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM') // USD*
+            );
+            
+            let quoteAmountsValid = true;
+            if (isStablecoinSwap) {
+              // For stablecoin swaps, check if the price is reasonable (~0.9 to 1.1 ratio)
+              // Assuming both tokens have 6 decimals
+              const inAmountReadable = parseFloat(standardQuote.inAmount) / 1e6;
+              const outAmountReadable = parseFloat(standardQuote.outAmount) / 1e6;
+              const priceRatio = outAmountReadable / inAmountReadable;
+              
+              // Price should be between 0.9 and 1.1 for stablecoin swaps
+              if (priceRatio < 0.9 || priceRatio > 1.1) {
+                console.warn(`   ⚠️  Standard API returned unreasonable quote amounts: ${inAmountReadable.toFixed(6)} -> ${outAmountReadable.toFixed(6)} (ratio: ${priceRatio.toFixed(4)})`);
+                quoteAmountsValid = false;
+              }
+            }
+            
+            // Only use Standard API if it shows better (lower) price impact AND quote amounts are valid
+            if (standardImpactPercent < impactPercent && quoteAmountsValid) {
+              console.log(`   ✅ Standard API returned accurate price impact: ${standardImpactPercent.toFixed(2)}% (was ${impactPercent.toFixed(2)}%)`);
+              fallbackSucceeded = true;
+              return {
+                ...standardQuote,
+                priceImpactPct: standardPriceImpactPct,
+              };
+            } else if (!quoteAmountsValid) {
+              console.warn(`   ⚠️  Standard API has correct price impact but wrong quote amounts - keeping Ultra API result`);
+            }
+          }
+        } catch (standardError) {
+          console.warn(`   ⚠️  Standard API fallback failed: ${standardError.message}`);
+          // Continue with Ultra API result even if it's erroneous
+        }
+        
+        // If fallback didn't succeed, add warning to Ultra API result
+        if (!fallbackSucceeded) {
+          return {
+            ...ultraQuote,
+            priceImpactPct: priceImpactPct,
+            warning: `⚠️ Erroneous price impact detected (${impactPercent.toFixed(2)}%). Quote may be inaccurate. This often occurs with certain tokens (like USD*) that require wallet balance for accurate quotes.`,
+          };
+        }
+      }
+      
+      // Return Ultra API result (either valid or we couldn't get better from Standard)
       return {
         ...ultraQuote,
-        // Ensure priceImpactPct is in decimal format (Ultra API already provides this)
-        priceImpactPct: ultraQuote.priceImpactPct !== undefined ? ultraQuote.priceImpactPct : (ultraQuote.priceImpact !== undefined ? ultraQuote.priceImpact / 100 : undefined),
+        priceImpactPct: priceImpactPct,
       };
     } catch (error) {
       const status = error.response?.status;
@@ -530,6 +708,7 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   const depthPoints = [];
   const errors = []; // Track errors for debugging
   const logs = []; // Track all logs for debugging
+  const warnings = []; // Track warnings about erroneous price impacts
   
   // Get token decimals
   const inputDecimals = await getTokenDecimals(inputMint);
@@ -924,6 +1103,12 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
       }
       
       const quote = await getQuote(quoteInputMint, quoteOutputMint, rawAmount, slippageBps, retryCount);
+      
+      // Track warnings from quotes
+      if (quote?.warning && !warnings.includes(quote.warning)) {
+        warnings.push(quote.warning);
+      }
+      
       const quoteDuration = ((Date.now() - quoteStartTime) / 1000).toFixed(2);
       const quoteLog3 = `   ⏱️ Quote request completed in ${quoteDuration}s`;
       console.log(quoteLog3);
@@ -1574,7 +1759,8 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   return {
     depthPoints,
     logs,
-    errors
+    errors,
+    warnings: warnings.length > 0 ? warnings : undefined
   };
 }
 
@@ -1694,7 +1880,12 @@ app.get('/api/quote', async (req, res) => {
     }
 
     const quote = await getQuote(inputMint, outputMint, amount, slippageBps);
-    res.json(quote);
+    
+    // Return quote with warning if present
+    res.json({
+      quote: quote,
+      warning: quote.warning || null,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Failed to fetch quote' });
   }
@@ -1721,6 +1912,7 @@ app.get('/api/liquidity-depth', async (req, res) => {
     const depth = Array.isArray(result) ? result : (result.depthPoints || []);
     const debugLogs = result.logs || [];
     const debugErrors = result.errors || [];
+    const warnings = result.warnings || [];
     const duration = Date.now() - startTime;
     
     console.log(`=== Calculation complete ===`);
@@ -1749,16 +1941,19 @@ app.get('/api/liquidity-depth', async (req, res) => {
     // This represents the spot price before any price impact
     const baselinePrice = depth.length > 0 ? depth[0].price : null;
     
-    res.json({
+    // Include warnings if any were detected
+    const responseData = {
       inputMint,
       outputMint,
       isBuy: isBuyOrder,
       depth,
       baselinePrice, // Add baseline price for frontend to always show spot price
+      ...(warnings.length > 0 && { warning: warnings[0] }), // Include first warning (they're usually the same)
       metadata: {
         pointsCount: depth.length,
         calculationTime: `${duration}ms`,
         timestamp: new Date().toISOString(),
+        warnings: warnings.length,
         warning: depth.length === 0 ? 'No liquidity data collected. Check server logs for details.' : null,
         tokenUnsupported: hasInvalidMintError
       },
@@ -1766,7 +1961,9 @@ app.get('/api/liquidity-depth', async (req, res) => {
         logs: debugLogs,
         errors: debugErrors
       }
-    });
+    };
+    
+    res.json(responseData);
   } catch (error) {
     console.error('Error fetching liquidity depth:', error);
     res.status(500).json({ 
@@ -1898,6 +2095,191 @@ app.get('/api/jupiter-status', async (req, res) => {
       status: 'error',
       error: error.message || 'Unknown error',
       message: 'Failed to test Jupiter API connectivity'
+    });
+  }
+});
+
+// Test function to compare Ultra API vs Standard Quote API for USD*
+async function testUSDStarQuotes() {
+  const USD_STAR_MINT = 'star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM';
+  const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+  const testAmount = '1000000000'; // 1000 USD* (assuming 6 decimals)
+  
+  const results = {
+    ultraApi: null,
+    standardApi: null,
+    comparison: null,
+    errors: []
+  };
+  
+  console.log('\n🧪 Testing USD* quotes with both APIs...\n');
+  
+  // Test Ultra API (current)
+  try {
+    console.log('1️⃣ Testing Ultra API (ultra-api.jup.ag/order)...');
+    const ultraResponse = await axiosInstance.get(JUPITER_ULTRA_API_URL, {
+      params: {
+        inputMint: USD_STAR_MINT,
+        outputMint: USDC_MINT,
+        amount: testAmount,
+        swapMode: 'ExactIn',
+      },
+      headers: {
+        'Accept': 'application/json',
+        ...(JUPITER_API_KEY && { 'x-api-key': JUPITER_API_KEY }),
+      }
+    });
+    
+    const ultraPriceImpact = ultraResponse.data.priceImpactPct 
+      ? Math.abs(parseFloat(ultraResponse.data.priceImpactPct) * 100)
+      : (ultraResponse.data.priceImpact 
+          ? Math.abs(parseFloat(ultraResponse.data.priceImpact))
+          : 'N/A');
+    
+    const ultraInAmount = parseFloat(ultraResponse.data.inAmount) / 1e6; // Convert to readable
+    const ultraOutAmount = parseFloat(ultraResponse.data.outAmount) / 1e6;
+    const ultraPrice = ultraOutAmount / ultraInAmount;
+    
+    results.ultraApi = {
+      success: true,
+      inAmount: ultraResponse.data.inAmount,
+      outAmount: ultraResponse.data.outAmount,
+      inAmountReadable: ultraInAmount.toFixed(6),
+      outAmountReadable: ultraOutAmount.toFixed(6),
+      price: ultraPrice.toFixed(6),
+      priceImpactPct: typeof ultraPriceImpact === 'number' ? ultraPriceImpact.toFixed(4) : ultraPriceImpact,
+      rawResponse: ultraResponse.data
+    };
+    
+    console.log('   ✅ Ultra API Response:');
+    console.log(`      Input: ${ultraInAmount.toFixed(6)} USD*`);
+    console.log(`      Output: ${ultraOutAmount.toFixed(6)} USDC`);
+    console.log(`      Price: 1 USD* = ${ultraPrice.toFixed(6)} USDC`);
+    console.log(`      Price Impact: ${typeof ultraPriceImpact === 'number' ? ultraPriceImpact.toFixed(4) + '%' : ultraPriceImpact}`);
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+    results.ultraApi = {
+      success: false,
+      error: errorMsg,
+      statusCode: error.response?.status
+    };
+    results.errors.push({ api: 'Ultra API', error: errorMsg });
+    console.log('   ❌ Ultra API Error:', errorMsg);
+  }
+  
+  // Test Standard Quote API
+  try {
+    console.log('\n2️⃣ Testing Standard Quote API (api.jup.ag/swap/v1/quote)...');
+    const standardResponse = await axiosInstance.get(JUPITER_QUOTE_URL, {
+      params: {
+        inputMint: USD_STAR_MINT,
+        outputMint: USDC_MINT,
+        amount: testAmount,
+        slippageBps: 50,
+      },
+      headers: {
+        'Accept': 'application/json',
+        ...(JUPITER_API_KEY && { 'x-api-key': JUPITER_API_KEY }),
+      }
+    });
+    
+    const standardPriceImpact = standardResponse.data.priceImpactPct 
+      ? Math.abs(parseFloat(standardResponse.data.priceImpactPct) * 100)
+      : (standardResponse.data.priceImpact 
+          ? Math.abs(parseFloat(standardResponse.data.priceImpact))
+          : 'N/A');
+    
+    const standardInAmount = parseFloat(standardResponse.data.inAmount) / 1e6;
+    const standardOutAmount = parseFloat(standardResponse.data.outAmount) / 1e6;
+    const standardPrice = standardOutAmount / standardInAmount;
+    
+    results.standardApi = {
+      success: true,
+      inAmount: standardResponse.data.inAmount,
+      outAmount: standardResponse.data.outAmount,
+      inAmountReadable: standardInAmount.toFixed(6),
+      outAmountReadable: standardOutAmount.toFixed(6),
+      price: standardPrice.toFixed(6),
+      priceImpactPct: typeof standardPriceImpact === 'number' ? standardPriceImpact.toFixed(4) : standardPriceImpact,
+      rawResponse: standardResponse.data
+    };
+    
+    console.log('   ✅ Standard API Response:');
+    console.log(`      Input: ${standardInAmount.toFixed(6)} USD*`);
+    console.log(`      Output: ${standardOutAmount.toFixed(6)} USDC`);
+    console.log(`      Price: 1 USD* = ${standardPrice.toFixed(6)} USDC`);
+    console.log(`      Price Impact: ${typeof standardPriceImpact === 'number' ? standardPriceImpact.toFixed(4) + '%' : standardPriceImpact}`);
+    
+    // Compare results
+    if (results.ultraApi && results.ultraApi.success && results.standardApi && results.standardApi.success) {
+      console.log('\n📊 Comparison:');
+      
+      const ultraImpact = typeof results.ultraApi.priceImpactPct === 'number' 
+        ? results.ultraApi.priceImpactPct 
+        : parseFloat(results.ultraApi.priceImpactPct) || 0;
+      const standardImpact = typeof results.standardApi.priceImpactPct === 'number'
+        ? results.standardApi.priceImpactPct
+        : parseFloat(results.standardApi.priceImpactPct) || 0;
+      
+      const priceDiff = Math.abs(parseFloat(results.ultraApi.price) - parseFloat(results.standardApi.price));
+      const priceDiffPercent = (priceDiff / parseFloat(results.standardApi.price)) * 100;
+      
+      results.comparison = {
+        priceDifference: priceDiff.toFixed(6),
+        priceDifferencePercent: priceDiffPercent.toFixed(4),
+        ultraPriceImpact: ultraImpact,
+        standardPriceImpact: standardImpact,
+        impactDifference: Math.abs(ultraImpact - standardImpact).toFixed(4)
+      };
+      
+      console.log(`   Price Difference: ${priceDiffPercent.toFixed(4)}%`);
+      console.log(`   Ultra API Price Impact: ${ultraImpact.toFixed(4)}%`);
+      console.log(`   Standard API Price Impact: ${standardImpact.toFixed(4)}%`);
+      
+      if (ultraImpact > 100 && standardImpact < 5) {
+        console.log('   ✅ Standard API shows accurate price impact!');
+        console.log('   ⚠️  Ultra API shows erroneous price impact (>100%)');
+        results.comparison.recommendation = 'Use Standard API for USD*';
+      } else if (standardImpact > 100 && ultraImpact < 5) {
+        console.log('   ✅ Ultra API shows accurate price impact!');
+        console.log('   ⚠️  Standard API shows erroneous price impact (>100%)');
+        results.comparison.recommendation = 'Use Ultra API for USD*';
+      } else if (ultraImpact < 5 && standardImpact < 5) {
+        console.log('   ✅ Both APIs show similar, accurate price impact');
+        results.comparison.recommendation = 'Both APIs work correctly';
+      } else {
+        console.log('   ⚠️  Both APIs show high price impact - may need wallet context');
+        results.comparison.recommendation = 'Both may need wallet balance verification';
+      }
+    }
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || error.message || 'Unknown error';
+    results.standardApi = {
+      success: false,
+      error: errorMsg,
+      statusCode: error.response?.status
+    };
+    results.errors.push({ api: 'Standard API', error: errorMsg });
+    console.log('   ❌ Standard API Error:', errorMsg);
+  }
+  
+  console.log('\n');
+  return results;
+}
+
+// Test endpoint to compare USD* quotes between Ultra and Standard APIs
+app.get('/api/test-usd-star', async (req, res) => {
+  try {
+    const results = await testUSDStarQuotes();
+    res.json({ 
+      success: true,
+      message: 'USD* API comparison test completed',
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: error.message || 'Failed to test USD* quotes',
+      details: error.response?.data || 'No additional details'
     });
   }
 });

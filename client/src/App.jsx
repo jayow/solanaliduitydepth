@@ -18,6 +18,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false); // No longer loading tokens on startup
   const [error, setError] = useState(null);
+  const [warning, setWarning] = useState(null); // Warning message from API
   const [viewMode, setViewMode] = useState('chart'); // 'table' or 'chart'
   const [jupiterStatus, setJupiterStatus] = useState(null); // 'checking', 'connected', 'error'
   const [statusMessage, setStatusMessage] = useState('');
@@ -118,6 +119,7 @@ function App() {
 
     setLoading(true);
     setError(null);
+    setWarning(null); // Clear previous warnings
     setElapsedTime(0);
     setStatusMessage('Connecting to Jupiter API...');
     
@@ -168,6 +170,19 @@ function App() {
       const sellUnsupported = sellResponse.data.metadata?.tokenUnsupported || false;
       const isUnsupported = buyUnsupported || sellUnsupported;
       
+      // Extract warnings from API responses
+      const buyWarning = buyResponse.data.warning;
+      const sellWarning = sellResponse.data.warning;
+      // Use the first warning found (they're usually the same)
+      const apiWarning = buyWarning || sellWarning;
+      console.log('🔍 Checking for warnings:', { buyWarning, sellWarning, apiWarning });
+      if (apiWarning) {
+        console.log('⚠️ Setting warning:', apiWarning);
+        setWarning(apiWarning);
+      } else {
+        setWarning(null); // Clear warning if no warning in response
+      }
+      
       // Store baseline price if available (spot price before price impact)
       // Use sell baseline price (selling input token) as primary, fallback to buy
       const sellBaselinePrice = sellResponse.data.baselinePrice;
@@ -177,6 +192,9 @@ function App() {
       setBuyDepth(buyDepthData);
       setSellDepth(sellDepthData);
       setBaselinePrice(priceToUse);
+      
+      // Log final warning state for debugging (use apiWarning, not state)
+      console.log('✅ API warning extracted:', apiWarning);
       
       if (buyDepthData.length === 0 && sellDepthData.length === 0) {
         if (isUnsupported) {
@@ -329,6 +347,17 @@ function App() {
                       )}
                     </div>
                   )}
+                  {!loading && warning && (
+                    <div className="warning-message" key="warning-display">
+                      <strong>⚠️ Warning:</strong> {warning}
+                    </div>
+                  )}
+                  {/* Debug: Show warning state */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div style={{ fontSize: '10px', color: '#666', padding: '4px' }}>
+                      Debug: warning={warning ? 'SET' : 'NULL'}, loading={loading ? 'YES' : 'NO'}
+                    </div>
+                  )}
                   {!loading && error && (
                     <div className="error-message">
                       {error}
@@ -431,6 +460,11 @@ function App() {
                         🔄 Retry
                       </button>
                     )}
+                  </div>
+                )}
+                {!loading && warning && (
+                  <div className="warning-message">
+                    {warning}
                   </div>
                 )}
                 {!loading && error && (
