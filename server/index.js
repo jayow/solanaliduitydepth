@@ -489,8 +489,15 @@ const USD_STAR_MINT = 'star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM';
 // Get quote from Jupiter API with retry logic
 // Tries Ultra API first, falls back to Standard API if price impact is erroneous
 // For USD* swaps, uses wallet address if available for accurate quotes
-async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries = 3) {
+async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries = 3, options = {}) {
   await waitForRateLimit();
+  
+  // Extract optional route restriction parameters
+  // These help ensure quotes reflect actual executable routes vs theoretical best paths
+  const {
+    onlyDirectRoutes = false, // If true, forces single-hop routes only (may miss multi-hop liquidity)
+    restrictIntermediateTokens = false, // If true, limits intermediate hops to stable tokens
+  } = options;
   
   // Check if this is a USD* swap that needs wallet context
   const isUSDStarSwap = inputMint === USD_STAR_MINT || outputMint === USD_STAR_MINT;
@@ -504,12 +511,29 @@ async function getQuote(inputMint, outputMint, amount, slippageBps = 50, retries
         outputMint,
         amount: amount.toString(),
         swapMode: 'ExactIn', // ExactIn = selling input token for output token
+        // Add slippage tolerance to Ultra API (if supported)
+        // This allows finding true liquidity limits for large trades
+        slippageBps: slippageBps.toString(),
       };
+      
+      // Add route restriction parameters if specified (Ultra API may or may not support these)
+      // If not supported, API will ignore them
+      if (onlyDirectRoutes) {
+        ultraParams.onlyDirectRoutes = 'true';
+      }
+      if (restrictIntermediateTokens) {
+        ultraParams.restrictIntermediateTokens = 'true';
+      }
       
       // Add wallet address for USD* swaps
       if (userPublicKey) {
         ultraParams.userPublicKey = userPublicKey;
         console.log(`   🔑 Using wallet address for USD* quote: ${userPublicKey.slice(0, 8)}...`);
+      }
+      
+      // Log slippage tolerance being used
+      if (slippageBps > 50) {
+        console.log(`   💰 Using slippage tolerance: ${slippageBps} bps (${(slippageBps / 100).toFixed(1)}%) for large trade detection`);
       }
       
       const response = await axiosInstance.get(JUPITER_ULTRA_API_URL, {
@@ -720,12 +744,18 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   
   // Fixed USD trade sizes to test (matching DeFiLlama format)
   // Added more granular sizes in $10M-$50M range for better accuracy, especially for stablecoins
+  // Also added sizes between $1M-$10M to avoid interpolation artifacts and capture real liquidity cliffs
   const usdTradeSizes = [
     500,        // $500
     1000,       // $1K
     10000,      // $10K
     100000,     // $100K
     1000000,    // $1M
+    2000000,    // $2M (added to fill gap between $1M-$10M)
+    3000000,    // $3M (added to fill gap between $1M-$10M)
+    5000000,    // $5M (added to fill gap between $1M-$10M)
+    7000000,    // $7M (added to fill gap between $1M-$10M - captures liquidity cliffs around $7-8M)
+    8000000,    // $8M (added to fill gap between $1M-$10M)
     10000000,   // $10M
     15000000,   // $15M (added for better interpolation)
     20000000,   // $20M (added for better interpolation)
@@ -887,12 +917,22 @@ async function calculateLiquidityDepth(inputMint, outputMint, isBuy) {
   // Convert each fixed USD amount to the exact token amount needed
   for (const usdAmount of usdTradeSizes) {
     // Skip larger trade sizes if we've already found the maximum liquidity through binary search
-    // This significantly speeds up tokens with limited liquidity (e.g., HYUSD)
+    // BUT only if the gap is small (< $5M) - for large gaps, still test to avoid missing liquidity cliffs
+    // This significantly speeds up tokens with limited liquidity while not missing real cliffs
     if (globalMaxFoundThroughBinarySearch > 0 && usdAmount > globalMaxFoundThroughBinarySearch * 1.1) {
-      const skipMsg = `⏭️ Skipping ${formatUSD(usdAmount)} - maximum liquidity is ${formatUSD(globalMaxFoundThroughBinarySearch)} (found through binary search)`;
-      console.log(skipMsg);
-      logs.push(skipMsg);
-      continue; // Skip this trade size
+      const gap = usdAmount - globalMaxFoundThroughBinarySearch;
+      // Only skip if gap is small (< $5M) - for larger gaps, still test (might find more liquidity)
+      if (gap < 5000000) {
+        const skipMsg = `⏭️ Skipping ${formatUSD(usdAmount)} - maximum liquidity is ${formatUSD(globalMaxFoundThroughBinarySearch)} (found through binary search, gap: ${formatUSD(gap)})`;
+        console.log(skipMsg);
+        logs.push(skipMsg);
+        continue; // Skip this trade size
+      } else {
+        // Gap is large - reset global max to allow testing (might find more liquidity)
+        console.log(`💡 Resetting global max (${formatUSD(globalMaxFoundThroughBinarySearch)}) - gap to ${formatUSD(usdAmount)} is large (${formatUSD(gap)}), testing anyway`);
+        logs.push(`💡 Resetting global max - large gap detected, testing ${formatUSD(usdAmount)}`);
+        globalMaxFoundThroughBinarySearch = 0; // Reset to allow testing
+      }
     }
     // Log every iteration to track progress
     const logMsg1 = `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;

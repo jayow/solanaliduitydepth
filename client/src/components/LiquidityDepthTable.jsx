@@ -2,14 +2,19 @@ import React, { useMemo } from 'react';
 import './LiquidityDepthTable.css';
 
 function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, baselinePrice }) {
-  // Standard trade sizes to sample (in USD value, matching DeFiLlama)
-  // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $10M, $15M, $20M, $30M, $50M, $100M
+  // Standard trade sizes to sample (in USD value, matching backend)
+  // Matches backend trade sizes: $500, $1K, $10K, $100K, $1M, $2M, $3M, $5M, $7M, $8M, $10M, $15M, $20M, $30M, $50M, $100M
   const standardTradeSizes = [
     500,        // $500
     1000,       // $1K
     10000,      // $10K
     100000,     // $100K
     1000000,    // $1M
+    2000000,    // $2M (added to fill gap between $1M-$10M)
+    3000000,    // $3M (added to fill gap between $1M-$10M)
+    5000000,    // $5M (added to fill gap between $1M-$10M)
+    7000000,    // $7M (added to fill gap between $1M-$10M - captures liquidity cliffs)
+    8000000,    // $8M (added to fill gap between $1M-$10M)
     10000000,   // $10M
     15000000,   // $15M
     20000000,   // $20M
@@ -23,9 +28,14 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, bas
     // Use sell depth (selling inputToken to get outputToken)
     const depthToUse = sellDepth && sellDepth.length > 0 ? sellDepth : buyDepth;
     
+    // Debug: Log standard trade sizes to verify new sizes are loaded
+    console.log('📊 LiquidityDepthTable: standardTradeSizes =', standardTradeSizes.map(s => s >= 1e6 ? `$${s/1e6}M` : `$${s/1e3}K`));
+    
     if (!depthToUse || depthToUse.length === 0) {
       return [];
     }
+    
+    console.log('📊 LiquidityDepthTable: Received', depthToUse.length, 'depth points from backend');
 
     // Get the best price (smallest trade) - reference for price impact
     const bestPrice = depthToUse[0]?.price || 0;
@@ -39,10 +49,18 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, bas
       let closestPoint = null;
       let minDiff = Infinity;
       
+      // First, try to find an exact match (within 1% tolerance for floating point)
       for (const point of depthToUse) {
         // Use tradeUsdValue if available (from new backend), otherwise calculate it
         const pointUsdValue = point.tradeUsdValue || (point.amount * bestPrice);
         const diff = Math.abs(pointUsdValue - targetUsdValue);
+        
+        // Check for exact match first (within 1% tolerance)
+        if (diff / targetUsdValue < 0.01) {
+          closestPoint = point;
+          minDiff = diff;
+          break; // Found exact match, no need to search further
+        }
         
         // Find the closest match
         if (diff < minDiff) {
@@ -63,12 +81,16 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, bas
       // Get actual USD value from backend or calculate it
       const actualTradeUsdValue = closestPoint.tradeUsdValue || (closestPoint.amount * bestPrice);
       
-      // Only include if the actual trade amount is reasonably close to target (within 50% or at least as large)
+      // Only include if the actual trade amount is reasonably close to target
+      // For exact matches (within 10%), always include
+      // For close matches (within 50% of target), include if actual is at least 50% of target
       // This prevents showing misleading data where we wanted $1B but only tested $100k
-      const isCloseEnough = actualTradeUsdValue >= targetUsdValue * 0.5 || actualTradeUsdValue >= targetUsdValue;
+      const diffPercent = Math.abs(actualTradeUsdValue - targetUsdValue) / targetUsdValue;
+      const isExactMatch = diffPercent <= 0.1; // Within 10% of target
+      const isCloseEnough = isExactMatch || (actualTradeUsdValue >= targetUsdValue * 0.5 && diffPercent <= 0.5);
       
       if (!isCloseEnough) {
-        // Skip this row - the actual data doesn't match the target size
+        // Skip this row - the actual data doesn't match the target size closely enough
         return;
       }
 
@@ -92,8 +114,16 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, bas
       });
     });
 
+    console.log(`📊 LiquidityDepthTable: Processed ${results.length} rows from ${standardTradeSizes.length} targets`);
+    if (results.length < standardTradeSizes.length) {
+      const foundSizes = results.map(r => r.tradeUsdValue);
+      const missingSizes = standardTradeSizes.filter(s => !foundSizes.some(f => Math.abs(f - s) < 1000));
+      console.warn(`⚠️ LiquidityDepthTable: Missing ${standardTradeSizes.length - results.length} sizes:`, missingSizes.map(s => s >= 1e6 ? `$${s/1e6}M` : `$${s/1e3}K`));
+    }
+    console.log('📊 LiquidityDepthTable: Results include sizes:', results.map(r => r.tradeUsdValue >= 1e6 ? `$${r.tradeUsdValue/1e6}M` : `$${r.tradeUsdValue/1e3}K`).join(', '));
+    
     return results;
-  }, [buyDepth, sellDepth]);
+  }, [buyDepth, sellDepth, inputToken, outputToken]);
 
   const formatCurrency = (amount) => {
     if (amount === undefined || amount === null || isNaN(amount)) return 'N/A';
@@ -112,6 +142,13 @@ function LiquidityDepthTable({ buyDepth, sellDepth, inputToken, outputToken, bas
     return amount.toFixed(2);
   };
 
+  // Debug: Log what will be rendered
+  console.log(`📊 LiquidityDepthTable RENDER: tableData.length = ${tableData.length}`);
+  if (tableData.length > 0) {
+    console.log('📊 LiquidityDepthTable RENDER: First 3 rows:', tableData.slice(0, 3).map(r => `$${r.tradeUsdValue >= 1e6 ? r.tradeUsdValue/1e6 + 'M' : r.tradeUsdValue/1e3 + 'K'}`));
+    console.log('📊 LiquidityDepthTable RENDER: All sizes being rendered:', tableData.map(r => r.tradeUsdValue >= 1e6 ? `$${r.tradeUsdValue/1e6}M` : `$${r.tradeUsdValue/1e3}K`).join(', '));
+  }
+  
   if (!tableData.length) {
     return (
       <div className="no-data">

@@ -112,8 +112,9 @@ function LiquidityDepthChart({ buyDepth, sellDepth, inputToken, outputToken }) {
     }).filter(point => point.tradeUsdValue > 0 && point.priceImpact >= 0);
     
     // Densify the data to allow hovering at any point
-    // Increased to 100 points for much smoother curves
-    return densifyData(baseData, 100);
+    // Use minimal interpolation (5 points per segment) to preserve real market structure
+    // This prevents artificial smoothing that hides liquidity cliffs and routing failures
+    return densifyData(baseData, 5);
   }, [buyDepth, sellDepth, inputToken, outputToken]);
 
   // Interpolate values between data points based on X position (tradeUsdValue)
